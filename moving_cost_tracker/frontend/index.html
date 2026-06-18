@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <title>מעקב הוצאות מעבר דירה</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>מעקב הוצאות מעבר דירה</h1>
+
+  <section id="budget-section">
+    <label>
+      תקציב (₪): <input type="number" id="budgetInput" placeholder="לדוגמה 5000" />
+    </label>
+    <button id="saveBudget">שמירת תקציב</button>
+  </section>
+
+  <section id="summary-section">
+    <h2>סיכום</h2>
+    <div id="summary"></div>
+    <progress id="budgetBar" max="100" value="0"></progress>
+  </section>
+
+  <section id="categories-section">
+    <h2>קטגוריות</h2>
+    <ul id="categoryList"></ul>
+    <input type="text" id="newCatNameEn" placeholder="Category (EN)" />
+    <input type="text" id="newCatNameHe" placeholder="קטגוריה (HE)" />
+    <button id="addCategory">הוסף קטגוריה</button>
+  </section>
+
+  <section id="items-section">
+    <h2>פריטים</h2>
+    <table id="itemsTable">
+      <thead>
+        <tr>
+          <th>✅</th>
+          <th>שם (EN)</th>
+          <th>שם (HE)</th>
+          <th>מחיר (₪)</th>
+          <th>קטגוריה</th>
+          <th>הערות</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>הוסף פריט</h3>
+    <input type="text" id="newItemEn" placeholder="שם (EN)" />
+    <input type="text" id="newItemHe" placeholder="שם (HE)" />
+    <input type="number" id="newItemPrice" placeholder="מחיר" />
+    <select id="newItemCategory"></select>
+    <button id="addItem">הוסף פריט</button>
+  </section>
+
+  <script src="script.js"></script>
+
+<footer id="contact-footer">
+  <h3>צור קשר</h3>
+  <p>
+    <a href="https://t.me/YourTelegramChannel" target="_blank" rel="noopener noreferrer">Telegram</a> |
+    <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+  </p>
+<div class="footer-contact">
+  <p>👥 <a href="https://t.me/YourTelegramChannel" target="_blank" rel="noopener noreferrer">הצטרפו לערוץ Telegram שלנו</a></p>
+  <p>📞 <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">צור קשר ב‑WhatsApp</a></p>
+</div>
+</footer>
+</body>
+</html>

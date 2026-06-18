@@ -1,0 +1,11 @@
+# Ignore embedded git repositories and backup folders
+_backup/
+financial_monitor/.git
+kick_Ai_v2/.git
+kick_and_backoff/.git
+repos/abri-brain/.git
+repos/whatsapp-deals-bot/.git
+# Node modules (if any not needed)
+node_modules/
+# Env files (already present but safe)
+.openclaw/.env
