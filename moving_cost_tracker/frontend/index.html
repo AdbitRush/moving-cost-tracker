@@ -138,7 +138,12 @@
           <label data-he="קטגוריה" data-en="Category">קטגוריה</label>
           <select id="newItemCategory"></select>
         </div>
+        <div class="field-group" id="newPhoneGroup" style="display:none">
+          <label data-he="טלפון ספק (אופציונלי)" data-en="Vendor phone (optional)">טלפון ספק (אופציונלי)</label>
+          <input type="tel" id="newItemPhone" placeholder="050-..." />
+        </div>
         <div class="field-group" style="align-self:end">
+          <button class="btn btn-ghost btn-sm" id="togglePhoneBtn" onclick="togglePhoneField()" style="margin-bottom:4px" data-he="+ טלפון" data-en="+ Phone">+ טלפון</button>
           <button class="btn btn-primary" id="addItem" data-he="+ הוסף" data-en="+ Add">+ הוסף</button>
         </div>
       </div>

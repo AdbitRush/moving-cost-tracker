@@ -307,24 +307,42 @@ async function deleteItem(id) {
   toast(currentLang === 'he' ? 'פריט נמחק' : 'Item deleted');
 }
 
+function togglePhoneField() {
+  const grp = document.getElementById('newPhoneGroup');
+  const btn = document.getElementById('togglePhoneBtn');
+  const visible = grp.style.display !== 'none';
+  grp.style.display = visible ? 'none' : 'flex';
+  grp.style.flexDirection = 'column';
+  btn.textContent = visible
+    ? (currentLang === 'he' ? '+ טלפון' : '+ Phone')
+    : (currentLang === 'he' ? '− טלפון' : '− Phone');
+  if (!visible) document.getElementById('newItemPhone').focus();
+}
+
 async function addItem() {
   const he    = document.getElementById('newItemHe').value.trim();
   const en    = document.getElementById('newItemEn').value.trim();
   const price = Number(document.getElementById('newItemPrice').value) || 0;
   const catId = document.getElementById('newItemCategory').value ?
     Number(document.getElementById('newItemCategory').value) : null;
+  const phone = document.getElementById('newItemPhone').value.trim();
   if (!he && !en) {
     toast(currentLang === 'he' ? 'הזן שם לפריט' : 'Enter item name', 'error');
     return;
   }
   const newItem = await api('/api/items', 'POST', {
-    name_he: he, name_en: en, price, currency: 'ILS', category_id: catId, notes: '', status: 'pending'
+    name_he: he, name_en: en, price, currency: 'ILS', category_id: catId,
+    notes: '', status: 'pending', contact_phone: phone
   });
   items.push(newItem);
   document.getElementById('newItemHe').value = '';
   document.getElementById('newItemEn').value = '';
   document.getElementById('newItemPrice').value = '';
   document.getElementById('newItemCategory').value = '';
+  document.getElementById('newItemPhone').value = '';
+  // collapse phone field after add
+  document.getElementById('newPhoneGroup').style.display = 'none';
+  document.getElementById('togglePhoneBtn').textContent = currentLang === 'he' ? '+ טלפון' : '+ Phone';
   renderItemsTable();
   updateSummary();
   toast(currentLang === 'he' ? 'פריט נוסף ✓' : 'Item added ✓', 'success');
@@ -358,7 +376,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('addItem').addEventListener('click', addItem);
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
 
-  ['newItemHe','newItemEn','newItemPrice'].forEach(id => {
+  ['newItemHe','newItemEn','newItemPrice','newItemPhone'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
   });
 
