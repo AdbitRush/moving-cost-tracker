@@ -46,26 +46,24 @@ body {
    LAYOUT
    ────────────────────────────────────────────────────────── */
 .app-layout {
-  display: flex;
-  flex-direction: row-reverse; /* sidebar on right for RTL */
   min-height: 100vh;
 }
 
 /* ──────────────────────────────────────────────────────────
-   SIDEBAR
+   SIDEBAR — fixed on the right (RTL)
    ────────────────────────────────────────────────────────── */
 .sidebar {
   width: var(--sidebar-w);
   background: var(--sidebar-bg);
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  position: sticky;
+  position: fixed;
   top: 0;
+  right: 0;
   height: 100vh;
   overflow-y: auto;
-  flex-shrink: 0;
-  z-index: 50;
+  z-index: 200;
+  box-shadow: -4px 0 24px rgba(0,0,0,.25);
 }
 
 .sidebar-logo {
@@ -169,7 +167,7 @@ body {
    MAIN CONTENT
    ────────────────────────────────────────────────────────── */
 .app-content {
-  flex: 1;
+  margin-right: var(--sidebar-w);
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -482,8 +480,9 @@ td input:focus, td select:focus { outline: none; border-color: var(--accent); ba
    MOBILE
    ────────────────────────────────────────────────────────── */
 @media(max-width: 768px) {
-  .sidebar { display: none; position: fixed; right: 0; top: 0; z-index: 200; box-shadow: var(--shadow-lg); }
+  .sidebar { display: none; }
   .sidebar.open { display: flex; }
+  .app-content { margin-right: 0; }
   .hamburger { display: block; }
   .main { padding: 20px 14px 48px; }
   .kpi-row { grid-template-columns: repeat(2,1fr); }
