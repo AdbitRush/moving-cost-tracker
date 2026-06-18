@@ -37,6 +37,16 @@ function loadStorage() {
 
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
 
+// ── Sidebar ───────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('sidebar').classList.remove('open');
+}
+
 // ── Toast ─────────────────────────────────────────────────
 function toast(msg, type = '') {
   const c = document.getElementById('toast-container');
@@ -79,19 +89,27 @@ function updateSummary() {
   const remaining = budget - allTotal;
   const pct       = budget > 0 ? Math.min(100, Math.round((allTotal / budget) * 100)) : 0;
 
-  document.getElementById('kpiTotal').textContent   = items.filter(i => i.status !== 'cancelled').length;
+  const activeCount = items.filter(i => i.status !== 'cancelled').length;
+  document.getElementById('kpiTotal').textContent   = activeCount;
   document.getElementById('kpiPaid').textContent    = '₪' + fmt(paidTotal);
   document.getElementById('kpiPending').textContent = '₪' + fmt(pendTotal);
   const remEl = document.getElementById('kpiRemaining');
-  remEl.textContent = '₪' + fmt(Math.abs(remaining));
-  remEl.className = 'kpi-value ' + (remaining < 0 ? 'red' : remaining < budget * 0.2 ? 'amber' : 'green');
+  remEl.textContent = (remaining < 0 ? '-' : '') + '₪' + fmt(Math.abs(remaining));
+  remEl.className = 'kpi-value' + (remaining < 0 ? ' danger' : '');
 
   const bar = document.getElementById('progressBar');
   bar.style.width = pct + '%';
-  bar.className = 'progress-bar' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warn' : '');
+  bar.className = 'hero-progress-bar' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warn' : '');
   document.getElementById('progressPct').textContent = pct + '%';
   document.getElementById('progressSpent').textContent = '₪' + fmt(allTotal) + ' הוצא';
-  document.getElementById('progressBudgetVal').textContent = '₪' + fmt(budget);
+  document.getElementById('heroTitle').textContent = '₪' + fmt(allTotal) + ' / ₪' + fmt(budget);
+
+  // Sidebar stats
+  document.getElementById('sb-paid').textContent      = '₪' + fmt(paidTotal);
+  document.getElementById('sb-pending').textContent   = '₪' + fmt(pendTotal);
+  document.getElementById('sb-remaining').textContent = (remaining < 0 ? '-' : '') + '₪' + fmt(Math.abs(remaining));
+  document.getElementById('sb-items-count').textContent = activeCount;
+  document.getElementById('sb-cats-count').textContent  = categories.length;
 }
 
 function fmt(n) {
@@ -325,6 +343,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('addCategory').addEventListener('click', addCategory);
   document.getElementById('addItem').addEventListener('click', addItem);
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+  document.getElementById('sb-export').addEventListener('click', exportCsv);
   document.getElementById('budgetInput').value = config.budget || '';
 
   document.getElementById('newCatName').addEventListener('keydown', e => { if (e.key === 'Enter') addCategory(); });

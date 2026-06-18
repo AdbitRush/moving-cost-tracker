@@ -8,142 +8,192 @@
 </head>
 <body>
 
-<div class="topbar">
-  <span class="topbar-title">
-    🏠 מעקב הוצאות מעבר דירה
-    <span class="badge">בטא</span>
-  </span>
-  <div class="topbar-actions">
-    <button class="btn btn-outline btn-sm" id="exportCsvBtn">⬇ ייצוא CSV</button>
-  </div>
-</div>
+<div class="app-layout">
 
-<div class="main">
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🏠</span>
+      <div class="logo-title">מעבר דירה</div>
+      <div class="logo-sub">מעקב הוצאות</div>
+    </div>
 
-  <!-- KPI cards -->
-  <div class="kpi-row">
-    <div class="kpi-card kpi-card-total">
-      <div class="kpi-icon">📦</div>
-      <div class="kpi-label">סה״כ פריטים</div>
-      <div class="kpi-value" id="kpiTotal">0</div>
-    </div>
-    <div class="kpi-card kpi-card-paid">
-      <div class="kpi-icon">✅</div>
-      <div class="kpi-label">שולם</div>
-      <div class="kpi-value" id="kpiPaid">₪0</div>
-    </div>
-    <div class="kpi-card kpi-card-pending">
-      <div class="kpi-icon">⏳</div>
-      <div class="kpi-label">ממתין לתשלום</div>
-      <div class="kpi-value" id="kpiPending">₪0</div>
-    </div>
-    <div class="kpi-card kpi-card-remain">
-      <div class="kpi-icon">💰</div>
-      <div class="kpi-label">יתרת תקציב</div>
-      <div class="kpi-value" id="kpiRemaining">₪0</div>
-    </div>
-  </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">תפריט</div>
+      <a class="sidebar-link active" href="#section-budget" onclick="scrollTo('section-budget')">
+        <span class="nav-icon">📊</span> תקציב וסיכום
+      </a>
+      <a class="sidebar-link" href="#section-items" onclick="scrollTo('section-items')">
+        <span class="nav-icon">📋</span> פריטים
+        <span class="nav-badge" id="sb-items-count">0</span>
+      </a>
+      <a class="sidebar-link" href="#section-cats" onclick="scrollTo('section-cats')">
+        <span class="nav-icon">🏷</span> קטגוריות
+        <span class="nav-badge" id="sb-cats-count">0</span>
+      </a>
 
-  <!-- Budget -->
-  <div class="budget-card">
-    <div class="budget-header">
-      <h2>📊 תקציב וסיכום</h2>
-      <div class="budget-input-row">
-        <input type="number" id="budgetInput" placeholder="0" min="0" />
-        <button class="btn btn-primary btn-sm" id="saveBudget">שמור תקציב</button>
+      <div class="sidebar-section-label" style="margin-top:8px">כלים</div>
+      <button class="sidebar-link" id="sb-export">
+        <span class="nav-icon">⬇</span> ייצוא CSV
+      </button>
+    </nav>
+
+    <div class="sidebar-stats">
+      <div class="sidebar-stat">
+        <div class="sidebar-stat-label">שולם</div>
+        <div class="sidebar-stat-value teal" id="sb-paid">₪0</div>
+      </div>
+      <div class="sidebar-stat">
+        <div class="sidebar-stat-label">ממתין</div>
+        <div class="sidebar-stat-value amber" id="sb-pending">₪0</div>
+      </div>
+      <div class="sidebar-stat">
+        <div class="sidebar-stat-label">יתרת תקציב</div>
+        <div class="sidebar-stat-value orange" id="sb-remaining">₪0</div>
       </div>
     </div>
-    <div class="progress-wrap">
-      <div class="progress-bar" id="progressBar" style="width:0%"></div>
-      <span class="progress-pct" id="progressPct">0%</span>
-    </div>
-    <div class="progress-meta">
-      <span id="progressSpent">₪0 הוצא</span>
-      <span>מתוך <span id="progressBudgetVal">₪0</span></span>
-    </div>
-  </div>
 
-  <!-- Categories -->
-  <div class="panel" id="catPanel">
-    <div class="panel-header" onclick="togglePanel('catPanel')">
-      <h2>🏷 קטגוריות</h2>
-      <span class="panel-toggle-icon">▾</span>
-    </div>
-    <div class="panel-body">
-      <div class="cat-chips" id="catChips"></div>
-      <hr class="divider" />
-      <div class="cat-add-row">
-        <input type="text" id="newCatName" placeholder="שם קטגוריה חדשה..." />
-        <button class="btn btn-primary" id="addCategory">+ הוסף קטגוריה</button>
+    <div class="sidebar-footer">Moving Cost Tracker v2</div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div class="app-content">
+
+    <div class="topbar">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
+      <span class="topbar-title">🏠 מעקב הוצאות מעבר דירה</span>
+      <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm" id="exportCsvBtn">⬇ CSV</button>
       </div>
     </div>
-  </div>
 
-  <!-- Items -->
-  <div class="panel" id="itemsPanel">
-    <div class="panel-header" onclick="togglePanel('itemsPanel')">
-      <h2>📋 פריטים ועלויות</h2>
-      <span class="panel-toggle-icon">▾</span>
-    </div>
-    <div class="panel-body">
-      <div class="items-toolbar">
-        <button class="filter-btn active" onclick="setFilter(this,'all')">הכל</button>
-        <button class="filter-btn" onclick="setFilter(this,'pending')">⏳ ממתין</button>
-        <button class="filter-btn" onclick="setFilter(this,'paid')">✅ שולם</button>
-        <button class="filter-btn" onclick="setFilter(this,'cancelled')">❌ בוטל</button>
-        <span class="spacer"></span>
-        <input class="search-input" type="text" id="searchInput" placeholder="🔍 חיפוש..." oninput="renderItemsTable()" />
-      </div>
+    <div class="main">
 
-      <div class="items-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:36px"></th>
-              <th>פריט</th>
-              <th>מחיר (₪)</th>
-              <th>קטגוריה</th>
-              <th>סטטוס</th>
-              <th style="width:40px">⋯</th>
-              <th style="width:40px"></th>
-            </tr>
-          </thead>
-          <tbody id="itemsTbody"></tbody>
-        </table>
-        <div class="empty-state" id="emptyState" style="display:none">
-          <div class="icon">📦</div>
-          <p>אין פריטים. הוסף פריט חדש למטה.</p>
+      <!-- ── HERO / BUDGET ── -->
+      <div class="page-hero" id="section-budget">
+        <div class="hero-label">סיכום תקציב</div>
+        <div class="hero-title" id="heroTitle">₪0 / ₪0</div>
+        <div class="hero-progress-wrap">
+          <div class="hero-progress-bar" id="progressBar" style="width:0%"></div>
+        </div>
+        <div class="hero-meta">
+          <span id="progressSpent">₪0 הוצא</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="hero-budget-row">
+          <span class="hero-budget-label">הגדר תקציב:</span>
+          <input type="number" id="budgetInput" placeholder="0" min="0" />
+          <button class="btn btn-primary btn-sm" id="saveBudget">שמור</button>
         </div>
       </div>
 
-      <div class="divider"></div>
-      <div class="add-section-label">הוסף פריט חדש</div>
-      <div class="add-item-form">
-        <div class="field-group" style="flex:2">
-          <label>שם הפריט</label>
-          <input type="text" id="newItemName" placeholder="לדוגמה: מובילים" />
+      <!-- ── KPI ROW ── -->
+      <div class="kpi-row">
+        <div class="kpi-card kpi-card-total">
+          <span class="kpi-icon">📦</span>
+          <div class="kpi-label">סה״כ פריטים</div>
+          <div class="kpi-value" id="kpiTotal">0</div>
         </div>
-        <div class="field-group">
-          <label>מחיר (₪)</label>
-          <input type="number" id="newItemPrice" placeholder="0" min="0" />
+        <div class="kpi-card kpi-card-paid">
+          <span class="kpi-icon">✅</span>
+          <div class="kpi-label">שולם</div>
+          <div class="kpi-value" id="kpiPaid">₪0</div>
         </div>
-        <div class="field-group">
-          <label>קטגוריה</label>
-          <select id="newItemCategory"></select>
+        <div class="kpi-card kpi-card-pending">
+          <span class="kpi-icon">⏳</span>
+          <div class="kpi-label">ממתין לתשלום</div>
+          <div class="kpi-value" id="kpiPending">₪0</div>
         </div>
-        <div class="field-group" id="newPhoneGroup" style="display:none">
-          <label>טלפון ספק</label>
-          <input type="tel" id="newItemPhone" placeholder="050-..." />
-        </div>
-        <div class="field-group" style="align-self:end">
-          <button class="btn btn-ghost btn-sm" id="togglePhoneBtn" onclick="togglePhoneField()" style="margin-bottom:6px">+ טלפון</button>
-          <button class="btn btn-primary" id="addItem">+ הוסף</button>
+        <div class="kpi-card kpi-card-remain">
+          <span class="kpi-icon">💰</span>
+          <div class="kpi-label">יתרת תקציב</div>
+          <div class="kpi-value" id="kpiRemaining">₪0</div>
         </div>
       </div>
-    </div>
-  </div>
 
-</div>
+      <!-- ── CATEGORIES ── -->
+      <div class="panel" id="section-cats">
+        <div class="panel-header" onclick="togglePanel('section-cats')">
+          <h2>🏷 קטגוריות</h2>
+          <span class="panel-toggle-icon">▾</span>
+        </div>
+        <div class="panel-body">
+          <div class="cat-chips" id="catChips"></div>
+          <hr class="divider" />
+          <div class="cat-add-row">
+            <input type="text" id="newCatName" placeholder="שם קטגוריה חדשה..." />
+            <button class="btn btn-primary" id="addCategory">+ הוסף קטגוריה</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ITEMS ── -->
+      <div class="panel" id="section-items">
+        <div class="panel-header" onclick="togglePanel('section-items')">
+          <h2>📋 פריטים ועלויות</h2>
+          <span class="panel-toggle-icon">▾</span>
+        </div>
+        <div class="panel-body">
+          <div class="items-toolbar">
+            <button class="filter-btn active" onclick="setFilter(this,'all')">הכל</button>
+            <button class="filter-btn" onclick="setFilter(this,'pending')">⏳ ממתין</button>
+            <button class="filter-btn" onclick="setFilter(this,'paid')">✅ שולם</button>
+            <button class="filter-btn" onclick="setFilter(this,'cancelled')">❌ בוטל</button>
+            <span class="spacer"></span>
+            <input class="search-input" type="text" id="searchInput" placeholder="🔍 חיפוש..." oninput="renderItemsTable()" />
+          </div>
+
+          <div class="items-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:36px"></th>
+                  <th>פריט</th>
+                  <th>מחיר (₪)</th>
+                  <th>קטגוריה</th>
+                  <th>סטטוס</th>
+                  <th style="width:40px">⋯</th>
+                  <th style="width:40px"></th>
+                </tr>
+              </thead>
+              <tbody id="itemsTbody"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState" style="display:none">
+              <div class="icon">📦</div>
+              <p>אין פריטים. הוסף פריט חדש למטה.</p>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="add-section-label">הוסף פריט חדש</div>
+          <div class="add-item-form">
+            <div class="field-group" style="flex:2">
+              <label>שם הפריט</label>
+              <input type="text" id="newItemName" placeholder="לדוגמה: מובילים" />
+            </div>
+            <div class="field-group">
+              <label>מחיר (₪)</label>
+              <input type="number" id="newItemPrice" placeholder="0" min="0" />
+            </div>
+            <div class="field-group">
+              <label>קטגוריה</label>
+              <select id="newItemCategory"></select>
+            </div>
+            <div class="field-group" id="newPhoneGroup" style="display:none">
+              <label>טלפון ספק</label>
+              <input type="tel" id="newItemPhone" placeholder="050-..." />
+            </div>
+            <div class="field-group" style="align-self:end">
+              <button class="btn btn-ghost btn-sm" id="togglePhoneBtn" onclick="togglePhoneField()" style="margin-bottom:6px">+ טלפון</button>
+              <button class="btn btn-primary" id="addItem">+ הוסף</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /app-content -->
+</div><!-- /app-layout -->
 
 <div id="toast-container"></div>
 <script src="script.js"></script>
