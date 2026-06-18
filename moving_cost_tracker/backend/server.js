@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 const HOST = '0.0.0.0';
-const PORT = 8000;
+const PORT = 3456;
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const FRONTEND_DIR = path.join(__dirname, '..', 'frontend');
@@ -87,9 +87,6 @@ const server = http.createServer(async (req, res) => {
           const items = readJson('items.json');
           const newId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
           const newItem = {
-            model: body.model || '',
-            contact_name: body.contact_name || '',
-            contact_phone: body.contact_phone || '',
             id: newId,
             name_en: body.name_en || '',
             name_he: body.name_he || '',
@@ -98,7 +95,10 @@ const server = http.createServer(async (req, res) => {
             notes: body.notes || '',
             category_id: body.category_id || null,
             selected: false,
-            // New fields are added above
+            status: body.status || 'pending',
+            model: body.model || '',
+            contact_name: body.contact_name || '',
+            contact_phone: body.contact_phone || '',
           };
           items.push(newItem);
           writeJson('items.json', items);
@@ -124,7 +124,7 @@ const server = http.createServer(async (req, res) => {
         try {
           const body = await parseBody(req);
           // Update allowed fields only
-          const allowed = ['name_en', 'name_he', 'price', 'currency', 'notes', 'category_id', 'selected', 'model', 'contact_name', 'contact_phone'];
+          const allowed = ['name_en', 'name_he', 'price', 'currency', 'notes', 'category_id', 'selected', 'status', 'model', 'contact_name', 'contact_phone'];
           for (const key of allowed) {
             if (key in body) items[idx][key] = body[key];
           }

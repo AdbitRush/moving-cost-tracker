@@ -1,71 +1,153 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>מעקב הוצאות מעבר דירה</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>מעקב הוצאות מעבר דירה</h1>
 
-  <section id="budget-section">
-    <label>
-      תקציב (₪): <input type="number" id="budgetInput" placeholder="לדוגמה 5000" />
-    </label>
-    <button id="saveBudget">שמירת תקציב</button>
-  </section>
-
-  <section id="summary-section">
-    <h2>סיכום</h2>
-    <div id="summary"></div>
-    <progress id="budgetBar" max="100" value="0"></progress>
-  </section>
-
-  <section id="categories-section">
-    <h2>קטגוריות</h2>
-    <ul id="categoryList"></ul>
-    <input type="text" id="newCatNameEn" placeholder="Category (EN)" />
-    <input type="text" id="newCatNameHe" placeholder="קטגוריה (HE)" />
-    <button id="addCategory">הוסף קטגוריה</button>
-  </section>
-
-  <section id="items-section">
-    <h2>פריטים</h2>
-    <table id="itemsTable">
-      <thead>
-        <tr>
-          <th>✅</th>
-          <th>שם (EN)</th>
-          <th>שם (HE)</th>
-          <th>מחיר (₪)</th>
-          <th>קטגוריה</th>
-          <th>הערות</th>
-          <th>פעולות</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <h3>הוסף פריט</h3>
-    <input type="text" id="newItemEn" placeholder="שם (EN)" />
-    <input type="text" id="newItemHe" placeholder="שם (HE)" />
-    <input type="number" id="newItemPrice" placeholder="מחיר" />
-    <select id="newItemCategory"></select>
-    <button id="addItem">הוסף פריט</button>
-  </section>
-
-  <script src="script.js"></script>
-
-<footer id="contact-footer">
-  <h3>צור קשר</h3>
-  <p>
-    <a href="https://t.me/YourTelegramChannel" target="_blank" rel="noopener noreferrer">Telegram</a> |
-    <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-  </p>
-<div class="footer-contact">
-  <p>👥 <a href="https://t.me/YourTelegramChannel" target="_blank" rel="noopener noreferrer">הצטרפו לערוץ Telegram שלנו</a></p>
-  <p>📞 <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">צור קשר ב‑WhatsApp</a></p>
+<div class="topbar">
+  <span class="topbar-title"><span class="emoji">🏠</span><span data-he="מעקב הוצאות מעבר דירה" data-en="Moving Cost Tracker">מעקב הוצאות מעבר דירה</span></span>
+  <div class="topbar-actions">
+    <button class="btn btn-outline btn-sm" id="exportCsvBtn">⬇ CSV</button>
+    <div class="lang-toggle">
+      <button id="btnHe" class="active" onclick="setLang('he')">עב</button>
+      <button id="btnEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
 </div>
-</footer>
+
+<div class="main">
+
+  <!-- KPI row -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label" data-he="סה״כ פריטים" data-en="Total items">סה״כ פריטים</div>
+      <div class="kpi-value accent" id="kpiTotal">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label" data-he="שולם" data-en="Paid">שולם</div>
+      <div class="kpi-value green" id="kpiPaid">₪0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label" data-he="ממתין לתשלום" data-en="Pending">ממתין לתשלום</div>
+      <div class="kpi-value amber" id="kpiPending">₪0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label" data-he="יתרת תקציב" data-en="Remaining budget">יתרת תקציב</div>
+      <div class="kpi-value" id="kpiRemaining">₪0</div>
+    </div>
+  </div>
+
+  <!-- Budget -->
+  <div class="budget-card">
+    <div class="budget-header">
+      <h2 data-he="תקציב וסיכום" data-en="Budget &amp; Summary">תקציב וסיכום</h2>
+      <div class="budget-input-row">
+        <input type="number" id="budgetInput" placeholder="0" min="0" />
+        <button class="btn btn-primary btn-sm" id="saveBudget" data-he="שמור תקציב" data-en="Save budget">שמור תקציב</button>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div class="progress-meta">
+      <span id="progressSpent">₪0 <span data-he="הוצא" data-en="spent">הוצא</span></span>
+      <span id="progressBudget"><span data-he="מתוך" data-en="of">מתוך</span> <span id="progressBudgetVal">₪0</span></span>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="panel" id="catPanel">
+    <div class="panel-header" onclick="togglePanel('catPanel')">
+      <h2 data-he="🏷 קטגוריות" data-en="🏷 Categories">🏷 קטגוריות</h2>
+      <span class="panel-toggle-icon">▾</span>
+    </div>
+    <div class="panel-body">
+      <div class="cat-chips" id="catChips"></div>
+      <hr class="divider" />
+      <div class="cat-add-row">
+        <input type="text" id="newCatNameHe" placeholder="שם (עברית)" />
+        <input type="text" id="newCatNameEn" placeholder="Name (EN)" />
+        <button class="btn btn-primary" id="addCategory" data-he="+ הוסף" data-en="+ Add">+ הוסף</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div class="panel" id="itemsPanel">
+    <div class="panel-header" onclick="togglePanel('itemsPanel')">
+      <h2 data-he="📋 פריטים ועלויות" data-en="📋 Items &amp; Costs">📋 פריטים ועלויות</h2>
+      <span class="panel-toggle-icon">▾</span>
+    </div>
+    <div class="panel-body">
+      <!-- Filters & search -->
+      <div class="items-toolbar">
+        <span style="font-size:.8rem;color:var(--text-muted)" data-he="סינון:" data-en="Filter:">סינון:</span>
+        <button class="filter-btn active" onclick="setFilter(this,'all')" data-he="הכל" data-en="All">הכל</button>
+        <button class="filter-btn" onclick="setFilter(this,'pending')" data-he="ממתין" data-en="Pending">ממתין</button>
+        <button class="filter-btn" onclick="setFilter(this,'paid')" data-he="שולם" data-en="Paid">שולם</button>
+        <button class="filter-btn" onclick="setFilter(this,'cancelled')" data-he="בוטל" data-en="Cancelled">בוטל</button>
+        <span class="spacer"></span>
+        <input type="text" id="searchInput"
+          style="border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.84rem;background:var(--bg);width:160px;font-family:var(--font);"
+          placeholder="🔍 חיפוש..." oninput="renderItemsTable()" />
+      </div>
+      <!-- Table -->
+      <div class="items-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px"></th>
+              <th data-he="פריט" data-en="Item (HE)">פריט</th>
+              <th data-he="English" data-en="Item (EN)">English</th>
+              <th data-he="מחיר (₪)" data-en="Price (₪)">מחיר (₪)</th>
+              <th data-he="קטגוריה" data-en="Category">קטגוריה</th>
+              <th data-he="סטטוס" data-en="Status">סטטוס</th>
+              <th style="width:36px" title="פרטים נוספים">⋯</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="itemsTbody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none">
+          <div class="icon">📦</div>
+          <div data-he="אין פריטים. הוסף פריט חדש למטה." data-en="No items yet. Add one below.">אין פריטים. הוסף פריט חדש למטה.</div>
+        </div>
+      </div>
+      <!-- Add form -->
+      <hr class="divider" />
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:10px;" data-he="+ הוסף פריט חדש" data-en="+ Add new item">+ הוסף פריט חדש</div>
+      <div class="add-item-form">
+        <div class="field-group">
+          <label data-he="שם (עברית)" data-en="Name (HE)">שם (עברית)</label>
+          <input type="text" id="newItemHe" placeholder="לדוגמה: מובילים" />
+        </div>
+        <div class="field-group">
+          <label data-he="שם (אנגלית)" data-en="Name (EN)">שם (אנגלית)</label>
+          <input type="text" id="newItemEn" placeholder="e.g. Movers" />
+        </div>
+        <div class="field-group">
+          <label data-he="מחיר (₪)" data-en="Price (₪)">מחיר (₪)</label>
+          <input type="number" id="newItemPrice" placeholder="0" min="0" />
+        </div>
+        <div class="field-group">
+          <label data-he="קטגוריה" data-en="Category">קטגוריה</label>
+          <select id="newItemCategory"></select>
+        </div>
+        <div class="field-group" style="align-self:end">
+          <button class="btn btn-primary" id="addItem" data-he="+ הוסף" data-en="+ Add">+ הוסף</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast-container"></div>
+<script src="script.js"></script>
 </body>
 </html>
