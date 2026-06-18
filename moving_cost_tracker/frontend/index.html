@@ -9,13 +9,9 @@
 <body>
 
 <div class="topbar">
-  <span class="topbar-title"><span class="emoji">🏠</span><span data-he="מעקב הוצאות מעבר דירה" data-en="Moving Cost Tracker">מעקב הוצאות מעבר דירה</span></span>
+  <span class="topbar-title"><span class="emoji">🏠</span> מעקב הוצאות מעבר דירה</span>
   <div class="topbar-actions">
     <button class="btn btn-outline btn-sm" id="exportCsvBtn">⬇ CSV</button>
-    <div class="lang-toggle">
-      <button id="btnHe" class="active" onclick="setLang('he')">עב</button>
-      <button id="btnEn" onclick="setLang('en')">EN</button>
-    </div>
   </div>
 </div>
 
@@ -24,19 +20,19 @@
   <!-- KPI row -->
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-label" data-he="סה״כ פריטים" data-en="Total items">סה״כ פריטים</div>
+      <div class="kpi-label">סה״כ פריטים</div>
       <div class="kpi-value accent" id="kpiTotal">0</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label" data-he="שולם" data-en="Paid">שולם</div>
+      <div class="kpi-label">שולם</div>
       <div class="kpi-value green" id="kpiPaid">₪0</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label" data-he="ממתין לתשלום" data-en="Pending">ממתין לתשלום</div>
+      <div class="kpi-label">ממתין לתשלום</div>
       <div class="kpi-value amber" id="kpiPending">₪0</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label" data-he="יתרת תקציב" data-en="Remaining budget">יתרת תקציב</div>
+      <div class="kpi-label">יתרת תקציב</div>
       <div class="kpi-value" id="kpiRemaining">₪0</div>
     </div>
   </div>
@@ -44,10 +40,10 @@
   <!-- Budget -->
   <div class="budget-card">
     <div class="budget-header">
-      <h2 data-he="תקציב וסיכום" data-en="Budget &amp; Summary">תקציב וסיכום</h2>
+      <h2>תקציב וסיכום</h2>
       <div class="budget-input-row">
         <input type="number" id="budgetInput" placeholder="0" min="0" />
-        <button class="btn btn-primary btn-sm" id="saveBudget" data-he="שמור תקציב" data-en="Save budget">שמור תקציב</button>
+        <button class="btn btn-primary btn-sm" id="saveBudget">שמור תקציב</button>
       </div>
     </div>
     <div class="progress-wrap">
@@ -55,24 +51,23 @@
       <span class="progress-pct" id="progressPct">0%</span>
     </div>
     <div class="progress-meta">
-      <span id="progressSpent">₪0 <span data-he="הוצא" data-en="spent">הוצא</span></span>
-      <span id="progressBudget"><span data-he="מתוך" data-en="of">מתוך</span> <span id="progressBudgetVal">₪0</span></span>
+      <span id="progressSpent">₪0 הוצא</span>
+      <span>מתוך <span id="progressBudgetVal">₪0</span></span>
     </div>
   </div>
 
   <!-- Categories -->
   <div class="panel" id="catPanel">
     <div class="panel-header" onclick="togglePanel('catPanel')">
-      <h2 data-he="🏷 קטגוריות" data-en="🏷 Categories">🏷 קטגוריות</h2>
+      <h2>🏷 קטגוריות</h2>
       <span class="panel-toggle-icon">▾</span>
     </div>
     <div class="panel-body">
       <div class="cat-chips" id="catChips"></div>
       <hr class="divider" />
       <div class="cat-add-row">
-        <input type="text" id="newCatNameHe" placeholder="שם (עברית)" />
-        <input type="text" id="newCatNameEn" placeholder="Name (EN)" />
-        <button class="btn btn-primary" id="addCategory" data-he="+ הוסף" data-en="+ Add">+ הוסף</button>
+        <input type="text" id="newCatName" placeholder="שם קטגוריה..." />
+        <button class="btn btn-primary" id="addCategory">+ הוסף</button>
       </div>
     </div>
   </div>
@@ -80,33 +75,30 @@
   <!-- Items -->
   <div class="panel" id="itemsPanel">
     <div class="panel-header" onclick="togglePanel('itemsPanel')">
-      <h2 data-he="📋 פריטים ועלויות" data-en="📋 Items &amp; Costs">📋 פריטים ועלויות</h2>
+      <h2>📋 פריטים ועלויות</h2>
       <span class="panel-toggle-icon">▾</span>
     </div>
     <div class="panel-body">
-      <!-- Filters & search -->
       <div class="items-toolbar">
-        <span style="font-size:.8rem;color:var(--text-muted)" data-he="סינון:" data-en="Filter:">סינון:</span>
-        <button class="filter-btn active" onclick="setFilter(this,'all')" data-he="הכל" data-en="All">הכל</button>
-        <button class="filter-btn" onclick="setFilter(this,'pending')" data-he="ממתין" data-en="Pending">ממתין</button>
-        <button class="filter-btn" onclick="setFilter(this,'paid')" data-he="שולם" data-en="Paid">שולם</button>
-        <button class="filter-btn" onclick="setFilter(this,'cancelled')" data-he="בוטל" data-en="Cancelled">בוטל</button>
+        <span style="font-size:.8rem;color:var(--text-muted)">סינון:</span>
+        <button class="filter-btn active" onclick="setFilter(this,'all')">הכל</button>
+        <button class="filter-btn" onclick="setFilter(this,'pending')">ממתין</button>
+        <button class="filter-btn" onclick="setFilter(this,'paid')">שולם</button>
+        <button class="filter-btn" onclick="setFilter(this,'cancelled')">בוטל</button>
         <span class="spacer"></span>
         <input type="text" id="searchInput"
           style="border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.84rem;background:var(--bg);width:160px;font-family:var(--font);"
           placeholder="🔍 חיפוש..." oninput="renderItemsTable()" />
       </div>
-      <!-- Table -->
       <div class="items-table-wrap">
         <table>
           <thead>
             <tr>
               <th style="width:36px"></th>
-              <th data-he="פריט" data-en="Item (HE)">פריט</th>
-              <th data-he="English" data-en="Item (EN)">English</th>
-              <th data-he="מחיר (₪)" data-en="Price (₪)">מחיר (₪)</th>
-              <th data-he="קטגוריה" data-en="Category">קטגוריה</th>
-              <th data-he="סטטוס" data-en="Status">סטטוס</th>
+              <th>פריט</th>
+              <th>מחיר (₪)</th>
+              <th>קטגוריה</th>
+              <th>סטטוס</th>
               <th style="width:36px" title="פרטים נוספים">⋯</th>
               <th style="width:36px"></th>
             </tr>
@@ -115,36 +107,31 @@
         </table>
         <div class="empty-state" id="emptyState" style="display:none">
           <div class="icon">📦</div>
-          <div data-he="אין פריטים. הוסף פריט חדש למטה." data-en="No items yet. Add one below.">אין פריטים. הוסף פריט חדש למטה.</div>
+          <div>אין פריטים. הוסף פריט חדש למטה.</div>
         </div>
       </div>
-      <!-- Add form -->
       <hr class="divider" />
-      <div style="font-size:.85rem;font-weight:700;margin-bottom:10px;" data-he="+ הוסף פריט חדש" data-en="+ Add new item">+ הוסף פריט חדש</div>
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:10px;">+ הוסף פריט חדש</div>
       <div class="add-item-form">
-        <div class="field-group">
-          <label data-he="שם (עברית)" data-en="Name (HE)">שם (עברית)</label>
-          <input type="text" id="newItemHe" placeholder="לדוגמה: מובילים" />
+        <div class="field-group" style="flex:2">
+          <label>שם הפריט</label>
+          <input type="text" id="newItemName" placeholder="לדוגמה: מובילים" />
         </div>
         <div class="field-group">
-          <label data-he="שם (אנגלית)" data-en="Name (EN)">שם (אנגלית)</label>
-          <input type="text" id="newItemEn" placeholder="e.g. Movers" />
-        </div>
-        <div class="field-group">
-          <label data-he="מחיר (₪)" data-en="Price (₪)">מחיר (₪)</label>
+          <label>מחיר (₪)</label>
           <input type="number" id="newItemPrice" placeholder="0" min="0" />
         </div>
         <div class="field-group">
-          <label data-he="קטגוריה" data-en="Category">קטגוריה</label>
+          <label>קטגוריה</label>
           <select id="newItemCategory"></select>
         </div>
         <div class="field-group" id="newPhoneGroup" style="display:none">
-          <label data-he="טלפון ספק (אופציונלי)" data-en="Vendor phone (optional)">טלפון ספק (אופציונלי)</label>
+          <label>טלפון ספק (אופציונלי)</label>
           <input type="tel" id="newItemPhone" placeholder="050-..." />
         </div>
         <div class="field-group" style="align-self:end">
-          <button class="btn btn-ghost btn-sm" id="togglePhoneBtn" onclick="togglePhoneField()" style="margin-bottom:4px" data-he="+ טלפון" data-en="+ Phone">+ טלפון</button>
-          <button class="btn btn-primary" id="addItem" data-he="+ הוסף" data-en="+ Add">+ הוסף</button>
+          <button class="btn btn-ghost btn-sm" id="togglePhoneBtn" onclick="togglePhoneField()" style="margin-bottom:4px">+ טלפון</button>
+          <button class="btn btn-primary" id="addItem">+ הוסף</button>
         </div>
       </div>
     </div>
