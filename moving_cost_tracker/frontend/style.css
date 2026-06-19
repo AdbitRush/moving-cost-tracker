@@ -642,3 +642,141 @@ button:active { transform: scale(.97); }
 .cal-event-badge.status-paid      { background: #ccfbf1; color: #0f766e; }
 .cal-event-badge.status-cancelled { background: #fee2e2; color: #991b1b; }
 .cal-empty { font-size: .75rem; color: var(--text-muted); text-align: center; padding: 18px 0; opacity: .55; }
+
+/* ──────────────────────────────────────────────────────────
+   SALES TAB
+   ────────────────────────────────────────────────────────── */
+.sale-card-forsale { border-top: 4px solid #6366f1; }
+.sale-card-sold    { border-top: 4px solid var(--teal); }
+.sale-card-removed { border-top: 4px solid #d1d5db; opacity: .65; }
+
+.status-forsale { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+.status-sold    { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+.status-removed { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+
+.sales-summary-row {
+  display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.sale-stat {
+  flex: 1; min-width: 90px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 18px; text-align: center;
+}
+.sale-stat-num { font-size: 1.4rem; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
+.sale-stat-lbl { font-size: .72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+.sale-stat-income .sale-stat-num { color: var(--teal); }
+
+/* Hero sales row */
+.hero-sales-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+.hero-sales-amount { font-weight: 800; color: #5eead4; font-size: .95rem; }
+
+/* ──────────────────────────────────────────────────────────
+   CATEGORY AS INLINE SELECT (card top)
+   ────────────────────────────────────────────────────────── */
+.inline-cat-select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  border-radius: 99px;
+  font-size: .8rem;
+  font-weight: 600;
+  font-family: var(--font);
+  padding: 6px 14px;
+  transition: transform .1s, box-shadow .15s;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 8px center;
+  padding-left: 24px;
+}
+.inline-cat-select:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+.inline-cat-select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ──────────────────────────────────────────────────────────
+   PHONE DISPLAY IN CARD BODY
+   ────────────────────────────────────────────────────────── */
+.icard-phone {
+  font-size: 1.05rem; font-weight: 700; color: var(--accent);
+  margin-top: 8px; letter-spacing: .04em; direction: ltr; text-align: right;
+}
+.icard-phone a { color: inherit; text-decoration: none; }
+.icard-phone a:hover { text-decoration: underline; }
+
+/* Larger phone input in expanded detail */
+.icard-phone-input {
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .05em !important;
+  direction: ltr !important;
+}
+
+/* Inline add-category input in expanded detail */
+.inline-cat-add {
+  border: 1.5px dashed var(--border); border-radius: 7px; padding: 7px 10px;
+  font-size: .78rem; background: var(--surface2); color: var(--text);
+  font-family: var(--font); flex: 1; min-width: 120px; transition: border-color .15s;
+}
+.inline-cat-add:focus { outline: none; border-color: var(--accent); background: #fff; border-style: solid; }
+.inline-cat-add::placeholder { color: var(--text-muted); font-style: italic; }
+
+/* ──────────────────────────────────────────────────────────
+   QUOTES COMPARISON (in expanded card detail)
+   ────────────────────────────────────────────────────────── */
+.quotes-section {
+  margin-top: 14px; padding: 14px 16px;
+  background: linear-gradient(135deg, #fefefe 0%, #f8f6f3 100%);
+  border: 1.5px solid var(--border); border-radius: 12px;
+}
+.quotes-header {
+  font-size: .78rem; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px;
+}
+.quotes-empty {
+  font-size: .82rem; color: var(--text-muted); text-align: center;
+  padding: 10px 0; font-style: italic;
+}
+.quote-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+  padding: 8px 10px; border-radius: 9px; margin-bottom: 6px;
+  border: 1.5px solid var(--border); background: #fff; transition: all .15s;
+}
+.quote-row:hover { border-color: #c7d2fe; }
+.quote-best {
+  border-color: #6ee7b7 !important;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+}
+.quote-supplier {
+  flex: 1; min-width: 100px; border: none; background: transparent;
+  font-size: .9rem; font-weight: 600; color: var(--text);
+  font-family: var(--font); padding: 2px 4px;
+}
+.quote-supplier:focus { outline: 1px solid var(--accent); border-radius: 4px; }
+.quote-price-wrap { display: flex; align-items: baseline; gap: 3px; flex-shrink: 0; }
+.quote-curr { font-size: .9rem; color: var(--text-muted); font-weight: 700; }
+.quote-price-inp {
+  width: 90px; border: none; background: transparent;
+  font-size: 1.15rem; font-weight: 800; color: var(--text);
+  font-family: var(--font); letter-spacing: -.02em; text-align: right;
+}
+.quote-price-inp:focus { outline: 1px solid var(--accent); border-radius: 4px; }
+.quote-best .quote-price-inp { color: #0f766e; }
+.quote-best-badge {
+  font-size: .72rem; font-weight: 700; color: #0f766e;
+  background: #d1fae5; border: 1px solid #6ee7b7;
+  padding: 2px 8px; border-radius: 99px; white-space: nowrap; flex-shrink: 0;
+}
+.quote-apply-btn {
+  background: linear-gradient(135deg, var(--teal), #0fb8ab) !important;
+  color: #fff !important; border: none !important;
+  font-size: .75rem !important; padding: 4px 10px !important;
+  flex-shrink: 0;
+}
+.quote-apply-btn:hover { filter: brightness(1.1); }

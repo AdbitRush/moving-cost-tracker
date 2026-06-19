@@ -35,6 +35,10 @@
         <span class="nav-icon">🏷</span> קטגוריות
         <span class="nav-badge" id="sb-cats-count">0</span>
       </a>
+      <a class="sidebar-link" data-tab="sales" onclick="showTab('sales')">
+        <span class="nav-icon">💵</span> מכירות
+        <span class="nav-badge" id="sb-sales-count">0</span>
+      </a>
 
       <div class="sidebar-section-label" style="margin-top:8px">כלים</div>
       <button class="sidebar-link" id="sb-export">
@@ -54,6 +58,10 @@
       <div class="sidebar-stat">
         <div class="sidebar-stat-label">יתרת תקציב</div>
         <div class="sidebar-stat-value orange" id="sb-remaining">₪0</div>
+      </div>
+      <div class="sidebar-stat">
+        <div class="sidebar-stat-label">הכנסות מכירות</div>
+        <div class="sidebar-stat-value" style="color:#5eead4" id="sb-sales-income">₪0</div>
       </div>
     </div>
 
@@ -92,6 +100,11 @@
             <span class="hero-budget-label">הגדר תקציב:</span>
             <input type="number" id="budgetInput" placeholder="0" min="0" />
             <button class="btn btn-primary btn-sm" id="saveBudget">שמור</button>
+          </div>
+          <div class="hero-sales-row" id="heroSalesRow" style="display:none">
+            <span class="hero-budget-label">💵 הכנסות ממכירות:</span>
+            <span class="hero-sales-amount" id="heroSalesAmount">₪0</span>
+            <span style="font-size:.75rem;color:rgba(255,255,255,.5)">(כלול בתקציב)</span>
           </div>
         </div>
 
@@ -229,6 +242,54 @@
           </div>
         </div>
       </div><!-- /tab-cats -->
+
+      <!-- ══════════════════════════════════════════════
+           TAB: SALES
+           ══════════════════════════════════════════════ -->
+      <div class="tab-page" id="tab-sales" style="display:none">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>💵 פריטים למכירה</h2>
+          </div>
+          <div class="panel-body">
+
+            <div id="salesSummary"></div>
+
+            <div class="items-toolbar">
+              <button class="filter-btn active" onclick="setSaleFilter(this,'all')">הכל</button>
+              <button class="filter-btn" onclick="setSaleFilter(this,'forsale')">💰 למכירה</button>
+              <button class="filter-btn" onclick="setSaleFilter(this,'sold')">✅ נמכר</button>
+              <button class="filter-btn" onclick="setSaleFilter(this,'removed')">❌ הוסר</button>
+            </div>
+
+            <div class="items-grid" id="saleGrid"></div>
+            <div class="empty-state" id="saleEmpty" style="display:none">
+              <div class="icon">🏷</div>
+              <p>אין פריטים למכירה. הוסף פריט למטה.</p>
+            </div>
+
+            <div class="divider"></div>
+            <div class="add-section-label">הוסף פריט למכירה</div>
+            <div class="add-item-form">
+              <div class="field-group" style="flex:2">
+                <label>שם הפריט</label>
+                <input type="text" id="newSaleName" placeholder="לדוגמה: ספה ישנה" />
+              </div>
+              <div class="field-group">
+                <label>מחיר מבוקש (₪)</label>
+                <input type="number" id="newSaleAskPrice" placeholder="0" min="0" />
+              </div>
+              <div class="field-group">
+                <label>הערות / קישור</label>
+                <input type="text" id="newSaleNotes" placeholder="יד2, פייסבוק..." />
+              </div>
+              <div class="field-group" style="align-self:end">
+                <button class="btn btn-primary" id="addSaleItem">+ הוסף</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-sales -->
 
     </div><!-- /main -->
   </div><!-- /app-content -->

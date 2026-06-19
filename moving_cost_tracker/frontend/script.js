@@ -2,8 +2,10 @@
 
 let categories = [];
 let items = [];
+let saleItems = [];
 let config = { budget: 0, currency: 'ILS' };
 let currentFilter = 'all';
+let currentSaleFilter = 'all';
 let expandedRows = new Set();
 let calWeekStart = null;
 let calWeekCount = 1;
@@ -14,11 +16,13 @@ const CAT_COLORS = ['cat-0','cat-1','cat-2','cat-3','cat-4','cat-5','cat-6','cat
 function saveItems()      { localStorage.setItem('mct-items',      JSON.stringify(items)); }
 function saveCategories() { localStorage.setItem('mct-categories', JSON.stringify(categories)); }
 function saveConfig()     { localStorage.setItem('mct-config',     JSON.stringify(config)); }
+function saveSaleItems()  { localStorage.setItem('mct-sales',      JSON.stringify(saleItems)); }
 
 function loadStorage() {
   items      = JSON.parse(localStorage.getItem('mct-items')      || '[]');
   categories = JSON.parse(localStorage.getItem('mct-categories') || '[]');
   config     = JSON.parse(localStorage.getItem('mct-config')     || '{"budget":0,"currency":"ILS"}');
+  saleItems  = JSON.parse(localStorage.getItem('mct-sales')      || '[]');
 
   if (!categories.length) {
     categories = [
@@ -40,30 +44,30 @@ function loadStorage() {
 
   if (!items.length) {
     items = [
-      { id:1,  name:'מובילים (הובלה)',      price:0, notes:'', category_id:1,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:2,  name:'אריזות וחומרי אריזה',  price:0, notes:'', category_id:1,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:3,  name:'מקרר',                 price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:4,  name:'מדיח כלים',            price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:5,  name:'תנור ומיקרוגל',        price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:6,  name:'מכונת כביסה',          price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:7,  name:'מזגן',                 price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:8,  name:'מיטה וארגז שינה',      price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:9,  name:'ספה וסלון',            price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:10, name:'ארון בגדים',           price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:11, name:'שולחן אוכל וכיסאות',  price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:12, name:'צבע וטיח',             price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:13, name:'ריצוף',                price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:14, name:'שיפוץ מטבח',           price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:15, name:'שיפוץ אמבטיה',         price:0, notes:'', category_id:5,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:16, name:'חיבור גז',             price:0, notes:'', category_id:5,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:17, name:'חיבור חשמל ולוח',      price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:18, name:'תאורה',                price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:19, name:'שירות ניקיון',         price:0, notes:'', category_id:7,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:20, name:'הדברה',                price:0, notes:'', category_id:7,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:21, name:'חיבור אינטרנט',        price:0, notes:'', category_id:8,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:22, name:'העברת טלפון וגז ומים', price:0, notes:'', category_id:8,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:23, name:'ביטוח דירה',           price:0, notes:'', category_id:10, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:24, name:'הוצאות שונות',         price:0, notes:'', category_id:12, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:1,  name:'מובילים (הובלה)',      price:0, notes:'', category_id:1,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:2,  name:'אריזות וחומרי אריזה',  price:0, notes:'', category_id:1,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:3,  name:'מקרר',                 price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:4,  name:'מדיח כלים',            price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:5,  name:'תנור ומיקרוגל',        price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:6,  name:'מכונת כביסה',          price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:7,  name:'מזגן',                 price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:8,  name:'מיטה וארגז שינה',      price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:9,  name:'ספה וסלון',            price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:10, name:'ארון בגדים',           price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:11, name:'שולחן אוכל וכיסאות',  price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:12, name:'צבע וטיח',             price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:13, name:'ריצוף',                price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:14, name:'שיפוץ מטבח',           price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:15, name:'שיפוץ אמבטיה',         price:0, notes:'', category_id:5,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:16, name:'חיבור גז',             price:0, notes:'', category_id:5,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:17, name:'חיבור חשמל ולוח',      price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:18, name:'תאורה',                price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:19, name:'שירות ניקיון',         price:0, notes:'', category_id:7,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:20, name:'הדברה',                price:0, notes:'', category_id:7,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:21, name:'חיבור אינטרנט',        price:0, notes:'', category_id:8,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:22, name:'העברת טלפון וגז ומים', price:0, notes:'', category_id:8,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:23, name:'ביטוח דירה',           price:0, notes:'', category_id:10, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+      { id:24, name:'הוצאות שונות',         price:0, notes:'', category_id:12, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
     ];
     saveItems();
   }
@@ -71,12 +75,19 @@ function loadStorage() {
 
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
 
+// ── Sales income ──────────────────────────────────────────
+function salesIncome() {
+  return saleItems.filter(s => s.status === 'sold')
+    .reduce((sum, s) => sum + (Number(s.soldPrice) || 0), 0);
+}
+
 // ── Tabs ──────────────────────────────────────────────────
 const TAB_TITLES = {
   dashboard: '📊 לוח בקרה',
   calendar:  '📅 לוח זמנים',
   items:     '📋 פריטים ועלויות',
   cats:      '🏷 קטגוריות',
+  sales:     '💵 פריטים למכירה',
 };
 
 function showTab(name) {
@@ -91,6 +102,7 @@ function showTab(name) {
   document.getElementById('sidebar').classList.remove('open');
   if (name === 'calendar') renderCalendar();
   if (name === 'cats') { renderCategoryChips(); renderCategoryDropdown(); }
+  if (name === 'sales') renderSaleItems();
 }
 
 // ── Sidebar ───────────────────────────────────────────────
@@ -116,7 +128,7 @@ function togglePanel(id) {
 // ── Filter ────────────────────────────────────────────────
 function setFilter(btn, filter) {
   currentFilter = filter;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#tab-items .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderItemsTable();
 }
@@ -137,8 +149,10 @@ function updateSummary() {
   const pendTotal = pending.reduce((s, i) => s + (Number(i.price) || 0), 0);
   const allTotal  = paidTotal + pendTotal;
   const budget    = Number(config.budget) || 0;
-  const remaining = budget - allTotal;
-  const pct       = budget > 0 ? Math.min(100, Math.round((allTotal / budget) * 100)) : 0;
+  const income    = salesIncome();
+  const effectiveBudget = budget + income;
+  const remaining = effectiveBudget - allTotal;
+  const pct       = effectiveBudget > 0 ? Math.min(100, Math.round((allTotal / effectiveBudget) * 100)) : 0;
 
   const activeCount = items.filter(i => i.status !== 'cancelled').length;
   document.getElementById('kpiTotal').textContent   = activeCount;
@@ -153,9 +167,16 @@ function updateSummary() {
   bar.className = 'hero-progress-bar' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warn' : '');
   document.getElementById('progressPct').textContent = pct + '%';
   document.getElementById('progressSpent').textContent = '₪' + fmt(allTotal) + ' הוצא';
-  document.getElementById('heroTitle').textContent = '₪' + fmt(allTotal) + ' / ₪' + fmt(budget);
+  document.getElementById('heroTitle').textContent = '₪' + fmt(allTotal) + ' / ₪' + fmt(effectiveBudget);
 
-  // Sidebar stats
+  const salesRow = document.getElementById('heroSalesRow');
+  if (income > 0) {
+    salesRow.style.display = 'flex';
+    document.getElementById('heroSalesAmount').textContent = '₪' + fmt(income);
+  } else {
+    salesRow.style.display = 'none';
+  }
+
   document.getElementById('sb-paid').textContent      = '₪' + fmt(paidTotal);
   document.getElementById('sb-pending').textContent   = '₪' + fmt(pendTotal);
   document.getElementById('sb-remaining').textContent = (remaining < 0 ? '-' : '') + '₪' + fmt(Math.abs(remaining));
@@ -163,6 +184,10 @@ function updateSummary() {
   document.getElementById('sb-cats-count').textContent  = categories.length;
   const apptEl = document.getElementById('sb-appt-count');
   if (apptEl) apptEl.textContent = items.filter(i => i.appointment).length;
+  const sbSalesIncome = document.getElementById('sb-sales-income');
+  if (sbSalesIncome) sbSalesIncome.textContent = '₪' + fmt(income);
+  const sbSalesCount = document.getElementById('sb-sales-count');
+  if (sbSalesCount) sbSalesCount.textContent = saleItems.filter(s => s.status !== 'removed').length;
 
   renderCalendar();
   renderUpcoming();
@@ -265,12 +290,36 @@ function renderCategoryDropdown() {
 function addCategory() {
   const name = document.getElementById('newCatName').value.trim();
   if (!name) { toast('הזן שם קטגוריה', 'error'); return; }
-  categories.push({ id: nextId(categories), name });
+  const newCat = { id: nextId(categories), name };
+  categories.push(newCat);
   saveCategories();
   document.getElementById('newCatName').value = '';
   renderCategoryChips();
   renderCategoryDropdown();
+  renderItemsTable();
   toast('קטגוריה נוספה ✓', 'success');
+  return newCat;
+}
+
+// Add category inline from within an item card's expanded detail
+function addCatFromItem(itemId, inp) {
+  const name = inp.value.trim();
+  if (!name) return;
+  const newCat = { id: nextId(categories), name };
+  categories.push(newCat);
+  saveCategories();
+  patch(itemId, 'category_id', newCat.id);
+  inp.value = '';
+  renderCategoryChips();
+  renderCategoryDropdown();
+  renderItemsTable();
+  toast('קטגוריה נוספה ✓', 'success');
+}
+
+// Update item category from the inline select in the card top
+function patchCat(id, sel) {
+  patch(id, 'category_id', sel.value ? Number(sel.value) : null);
+  renderItemsTable();
 }
 
 // ── Items ─────────────────────────────────────────────────
@@ -290,6 +339,36 @@ function visibleItems() {
 const STATUS_CYCLE = ['pending', 'paid', 'cancelled'];
 const STATUS_LABEL = { pending: 'ממתין', paid: 'שולם', cancelled: 'בוטל' };
 
+// Build the quotes comparison section HTML for expanded card view
+function buildQuotesHtml(item) {
+  const qs = item.quotes || [];
+  const prices = qs.map(q => Number(q.price) || 0).filter(p => p > 0);
+  const minPrice = prices.length ? Math.min(...prices) : null;
+
+  const rows = qs.map(q => {
+    const price = Number(q.price) || 0;
+    const isBest = minPrice !== null && price === minPrice && price > 0 && prices.length > 1;
+    return '<div class="quote-row' + (isBest ? ' quote-best' : '') + '">' +
+      '<input class="quote-supplier" type="text" value="' + esc(q.supplier || '') + '" placeholder="שם ספק / חברה"' +
+        ' onblur="patchQuote(' + item.id + ',' + q.id + ',\'supplier\',this.value)" />' +
+      '<div class="quote-price-wrap">' +
+        '<span class="quote-curr">₪</span>' +
+        '<input class="quote-price-inp" type="number" value="' + (q.price || 0) + '" min="0" placeholder="0"' +
+          ' onchange="patchQuote(' + item.id + ',' + q.id + ',\'price\',Number(this.value));renderItemsTable()" />' +
+      '</div>' +
+      (isBest ? '<span class="quote-best-badge">⭐ הכי זול</span>' : '<span></span>') +
+      '<button class="icard-btn btn-sm quote-apply-btn" onclick="applyQuote(' + item.id + ',' + q.id + ')" title="העתק מחיר לפריט">✓ הגדר</button>' +
+      '<button class="icard-btn icard-del" onclick="deleteQuote(' + item.id + ',' + q.id + ')">✕</button>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="quotes-section">' +
+    '<div class="quotes-header">🏆 השוואת הצעות מחיר</div>' +
+    (rows || '<div class="quotes-empty">לחץ על ״+ הוסף הצעה״ להשוואת ספקים</div>') +
+    '<button class="btn btn-ghost btn-sm" onclick="addQuote(' + item.id + ')" style="margin-top:8px">+ הוסף הצעה</button>' +
+  '</div>';
+}
+
 function renderItemsTable() {
   const grid = document.getElementById('itemsGrid');
   const empty = document.getElementById('emptyState');
@@ -304,17 +383,29 @@ function renderItemsTable() {
     const cat = categories.find(c => c.id === item.category_id);
     const catIdx = cat ? categories.indexOf(cat) : -1;
 
-    const catBadge = cat
-      ? '<span class="cat-chip ' + CAT_COLORS[catIdx % CAT_COLORS.length] + '" style="font-size:.7rem;padding:3px 10px">' + esc(cat.name) + '</span>'
-      : '<span class="cat-chip cat-unset">ללא קטגוריה</span>';
+    // Category as an interactive select (no expand needed to change category)
+    const colorClass = cat ? CAT_COLORS[catIdx % CAT_COLORS.length] : 'cat-unset';
+    const catOpts = '<option value="">ללא קטגוריה</option>' +
+      categories.map(c =>
+        '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') + '>' + esc(c.name) + '</option>'
+      ).join('');
+    const catSelect = '<select class="cat-chip ' + colorClass + ' inline-cat-select" onchange="patchCat(' + item.id + ',this)">' +
+      catOpts + '</select>';
 
     const apptBadge = item.appointment
       ? '<div class="appt-badge' + (isUpcoming(item.appointment) ? ' appt-soon' : '') + '">📅 ' + fmtAppt(item.appointment) + '</div>'
       : '';
 
-    const catOpts = categories.map(c =>
-      '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') + '>' + esc(c.name) + '</option>'
-    ).join('');
+    // Phone visible on card face (big and readable)
+    const phoneDisplay = item.contact_phone
+      ? '<div class="icard-phone">📞 <a href="tel:' + esc(item.contact_phone) + '">' + esc(item.contact_phone) + '</a></div>'
+      : '';
+
+    // Expanded detail uses the same catOpts for a full select + inline add-category
+    const catOptsDetail = '<option value="">— ללא —</option>' +
+      categories.map(c =>
+        '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') + '>' + esc(c.name) + '</option>'
+      ).join('');
 
     const detail = isExpanded ? (
       '<div class="item-card-detail">' +
@@ -325,19 +416,24 @@ function renderItemsTable() {
           '<div><label>שם ספק</label>' +
             '<input type="text" value="' + esc(item.contact_name || '') + '"' +
             ' onblur="patch(' + item.id + ',\'contact_name\',this.value)" placeholder="שם" /></div>' +
-          '<div><label>טלפון ספק</label>' +
-            '<input type="text" value="' + esc(item.contact_phone || '') + '"' +
-            ' onblur="patch(' + item.id + ',\'contact_phone\',this.value)" placeholder="050-..." /></div>' +
+          '<div class="icard-span2"><label>📞 טלפון ספק</label>' +
+            '<input type="tel" class="icard-phone-input" value="' + esc(item.contact_phone || '') + '"' +
+            ' onblur="patch(' + item.id + ',\'contact_phone\',this.value)" placeholder="054-0000000" /></div>' +
           '<div><label>📅 תאריך ושעת הגעה</label>' +
             '<input type="datetime-local" value="' + esc(item.appointment || '') + '"' +
             ' onchange="patch(' + item.id + ',\'appointment\',this.value);renderItemsTable()" /></div>' +
-          '<div class="icard-span2"><label>קטגוריה</label>' +
-            '<select onchange="patch(' + item.id + ',\'category_id\',this.value?Number(this.value):null);renderItemsTable()">' +
-            '<option value="">— ללא —</option>' + catOpts + '</select></div>' +
-          '<div class="icard-span2"><label>הערות</label>' +
+          '<div><label>הערות</label>' +
             '<input type="text" value="' + esc(item.notes || '') + '"' +
             ' onblur="patch(' + item.id + ',\'notes\',this.value)" placeholder="הערות חופשיות..." /></div>' +
+          '<div class="icard-span2"><label>קטגוריה</label>' +
+            '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
+              '<select style="flex:1;min-width:130px" onchange="patchCat(' + item.id + ',this)">' +
+              catOptsDetail + '</select>' +
+              '<input type="text" class="inline-cat-add" placeholder="+ קטגוריה חדשה"' +
+                ' onkeydown="if(event.key===\'Enter\')addCatFromItem(' + item.id + ',this)" />' +
+            '</div></div>' +
         '</div>' +
+        buildQuotesHtml(item) +
       '</div>'
     ) : '';
 
@@ -345,7 +441,7 @@ function renderItemsTable() {
     card.className = 'item-card status-card-' + status;
     card.innerHTML =
       '<div class="item-card-top">' +
-        catBadge +
+        catSelect +
         '<div class="item-card-top-actions">' +
           '<button class="icard-btn" onclick="toggleExpand(' + item.id + ')">' + (isExpanded ? '▲' : '⋯') + '</button>' +
           '<button class="icard-btn icard-del" onclick="deleteItem(' + item.id + ')">🗑</button>' +
@@ -359,6 +455,7 @@ function renderItemsTable() {
           '<input class="icard-price" type="number" value="' + (item.price || 0) + '" min="0"' +
             ' onchange="patch(' + item.id + ',\'price\',Number(this.value));updateSummary()" />' +
         '</div>' +
+        phoneDisplay +
       '</div>' +
       '<div class="item-card-footer">' +
         '<span class="status-badge status-' + status + '" onclick="cycleStatus(' + item.id + ')" title="לחץ לשינוי">' + STATUS_LABEL[status] + '</span>' +
@@ -384,7 +481,7 @@ function fmtAppt(dt) {
 function isUpcoming(dt) {
   if (!dt) return false;
   const diff = new Date(dt) - new Date();
-  return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000; // within 3 days
+  return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
 }
 
 function patch(id, key, value) {
@@ -442,7 +539,7 @@ function addItem() {
     id: nextId(items), name, price, currency: 'ILS',
     category_id: catId, notes: '', status: 'pending',
     model: '', contact_name: '', contact_phone: phone,
-    appointment: '', selected: false
+    appointment: '', selected: false, quotes: []
   });
   saveItems();
 
@@ -456,6 +553,45 @@ function addItem() {
   renderItemsTable();
   updateSummary();
   toast('פריט נוסף ✓', 'success');
+}
+
+// ── Quotes ────────────────────────────────────────────────
+function addQuote(itemId) {
+  const item = items.find(i => i.id === itemId);
+  if (!item) return;
+  if (!item.quotes) item.quotes = [];
+  item.quotes.push({ id: nextId(item.quotes), supplier: '', price: 0 });
+  saveItems();
+  renderItemsTable();
+}
+
+function patchQuote(itemId, quoteId, key, value) {
+  const item = items.find(i => i.id === itemId);
+  if (!item || !item.quotes) return;
+  const q = item.quotes.find(q => q.id === quoteId);
+  if (!q) return;
+  q[key] = value;
+  saveItems();
+}
+
+function applyQuote(itemId, quoteId) {
+  const item = items.find(i => i.id === itemId);
+  if (!item || !item.quotes) return;
+  const q = item.quotes.find(q => q.id === quoteId);
+  if (!q) return;
+  item.price = q.price;
+  saveItems();
+  renderItemsTable();
+  updateSummary();
+  toast('מחיר עודכן: ₪' + fmt(q.price), 'success');
+}
+
+function deleteQuote(itemId, quoteId) {
+  const item = items.find(i => i.id === itemId);
+  if (!item || !item.quotes) return;
+  item.quotes = item.quotes.filter(q => q.id !== quoteId);
+  saveItems();
+  renderItemsTable();
 }
 
 // ── CSV Export ────────────────────────────────────────────
@@ -549,6 +685,124 @@ function expandItem(id) {
   renderItemsTable();
 }
 
+// ── Sale Items ────────────────────────────────────────────
+const SALE_STATUS_CYCLE = ['forsale', 'sold', 'removed'];
+const SALE_STATUS_LABEL = { forsale: 'למכירה', sold: 'נמכר', removed: 'הוסר' };
+
+function setSaleFilter(btn, filter) {
+  currentSaleFilter = filter;
+  document.querySelectorAll('#tab-sales .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSaleItems();
+}
+
+function renderSaleItems() {
+  const grid    = document.getElementById('saleGrid');
+  const empty   = document.getElementById('saleEmpty');
+  const summary = document.getElementById('salesSummary');
+  if (!grid) return;
+
+  const income       = salesIncome();
+  const forSaleCount = saleItems.filter(s => s.status === 'forsale').length;
+  const soldCount    = saleItems.filter(s => s.status === 'sold').length;
+
+  summary.innerHTML =
+    '<div class="sales-summary-row">' +
+      '<div class="sale-stat"><div class="sale-stat-num">' + forSaleCount + '</div><div class="sale-stat-lbl">💰 למכירה</div></div>' +
+      '<div class="sale-stat"><div class="sale-stat-num">' + soldCount    + '</div><div class="sale-stat-lbl">✅ נמכר</div></div>' +
+      '<div class="sale-stat sale-stat-income"><div class="sale-stat-num">₪' + fmt(income) + '</div><div class="sale-stat-lbl">💵 הכנסות</div></div>' +
+    '</div>';
+
+  const vis = saleItems.filter(s => currentSaleFilter === 'all' || s.status === currentSaleFilter);
+  grid.innerHTML = '';
+  empty.style.display = vis.length ? 'none' : 'flex';
+
+  vis.forEach(item => {
+    const status = item.status || 'forsale';
+
+    const soldPriceHtml = status === 'sold'
+      ? '<div class="icard-price-row" style="margin-top:6px">' +
+          '<span class="icard-curr" style="color:var(--teal);font-size:.85rem">נמכר בפועל ₪</span>' +
+          '<input class="icard-price" type="number" value="' + (item.soldPrice || 0) + '" min="0"' +
+            ' style="font-size:1.3rem;color:var(--teal)"' +
+            ' onchange="patchSale(' + item.id + ',\'soldPrice\',Number(this.value));updateSummary()" />' +
+        '</div>'
+      : '';
+
+    const notesHtml = item.notes
+      ? '<span style="font-size:.75rem;color:var(--text-muted);margin-right:6px">📝 ' + esc(item.notes) + '</span>'
+      : '';
+
+    const card = document.createElement('div');
+    card.className = 'item-card sale-card-' + status;
+    card.innerHTML =
+      '<div class="item-card-top">' +
+        '<span class="cat-chip cat-2" style="font-size:.7rem;padding:3px 10px">מבוקש ₪' + fmt(item.askPrice || 0) + '</span>' +
+        '<button class="icard-btn icard-del" onclick="deleteSaleItem(' + item.id + ')">🗑</button>' +
+      '</div>' +
+      '<div class="item-card-body">' +
+        '<input class="icard-name" type="text" value="' + esc(item.name) + '"' +
+          ' onblur="patchSale(' + item.id + ',\'name\',this.value)" />' +
+        '<div class="icard-price-row">' +
+          '<span class="icard-curr">₪</span>' +
+          '<input class="icard-price" type="number" value="' + (item.askPrice || 0) + '" min="0"' +
+            ' onchange="patchSale(' + item.id + ',\'askPrice\',Number(this.value));renderSaleItems();updateSummary()" />' +
+        '</div>' +
+        soldPriceHtml +
+      '</div>' +
+      '<div class="item-card-footer">' +
+        '<span class="status-badge status-' + status + '" onclick="cycleSaleStatus(' + item.id + ')" title="לחץ לשינוי">' + SALE_STATUS_LABEL[status] + '</span>' +
+        notesHtml +
+      '</div>';
+
+    grid.appendChild(card);
+  });
+}
+
+function patchSale(id, key, value) {
+  const item = saleItems.find(s => s.id === id);
+  if (!item) return;
+  item[key] = value;
+  saveSaleItems();
+}
+
+function cycleSaleStatus(id) {
+  const item = saleItems.find(s => s.id === id);
+  if (!item) return;
+  const cur = item.status || 'forsale';
+  item.status = SALE_STATUS_CYCLE[(SALE_STATUS_CYCLE.indexOf(cur) + 1) % SALE_STATUS_CYCLE.length];
+  saveSaleItems();
+  renderSaleItems();
+  updateSummary();
+}
+
+function deleteSaleItem(id) {
+  if (!confirm('למחוק פריט זה?')) return;
+  saleItems = saleItems.filter(s => s.id !== id);
+  saveSaleItems();
+  renderSaleItems();
+  updateSummary();
+  toast('פריט נמחק');
+}
+
+function addSaleItem() {
+  const name     = document.getElementById('newSaleName').value.trim();
+  const askPrice = Number(document.getElementById('newSaleAskPrice').value) || 0;
+  const notes    = document.getElementById('newSaleNotes').value.trim();
+  if (!name) { toast('הזן שם לפריט', 'error'); return; }
+
+  saleItems.push({ id: nextId(saleItems), name, askPrice, soldPrice: 0, status: 'forsale', notes });
+  saveSaleItems();
+
+  document.getElementById('newSaleName').value     = '';
+  document.getElementById('newSaleAskPrice').value = '';
+  document.getElementById('newSaleNotes').value    = '';
+
+  renderSaleItems();
+  updateSummary();
+  toast('פריט נוסף ✓', 'success');
+}
+
 // ── Init ──────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   loadStorage();
@@ -556,6 +810,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('saveBudget').addEventListener('click', saveBudget);
   document.getElementById('addCategory').addEventListener('click', addCategory);
   document.getElementById('addItem').addEventListener('click', addItem);
+  document.getElementById('addSaleItem').addEventListener('click', addSaleItem);
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
   document.getElementById('sb-export').addEventListener('click', exportCsv);
   document.getElementById('budgetInput').value = config.budget || '';
@@ -563,6 +818,9 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('newCatName').addEventListener('keydown', e => { if (e.key === 'Enter') addCategory(); });
   ['newItemName','newItemPrice','newItemPhone'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+  });
+  ['newSaleName','newSaleAskPrice'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') addSaleItem(); });
   });
 
   renderCategoryChips();
