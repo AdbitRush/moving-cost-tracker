@@ -267,6 +267,13 @@ function fmt(n) {
   return Number(n).toLocaleString('he-IL', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+// Use local date parts — toISOString() converts to UTC which is off by one in UTC+2/+3
+function localDateStr(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
 // ── Categories ────────────────────────────────────────────
 function renderCategoryChips() {
   const wrap = document.getElementById('catChips');
@@ -780,7 +787,7 @@ function renderCalendar() {
   if (!calWeekStart) calWeekStart = getWeekStart(new Date('2026-07-15'));
 
   const HEB_DAYS = ['א׳ ראשון','ב׳ שני','ג׳ שלישי','ד׳ רביעי','ה׳ חמישי','ו׳ שישי','ש׳ שבת'];
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = localDateStr(new Date());
 
   const weekEnd = new Date(calWeekStart);
   weekEnd.setDate(weekEnd.getDate() + calWeekCount * 7 - 1);
@@ -792,7 +799,7 @@ function renderCalendar() {
   for (let i = 0; i < calWeekCount * 7; i++) {
     const day = new Date(calWeekStart);
     day.setDate(day.getDate() + i);
-    const dayStr = day.toISOString().slice(0, 10);
+    const dayStr = localDateStr(day);
     const isToday = dayStr === todayStr;
 
     const dayItems = items
