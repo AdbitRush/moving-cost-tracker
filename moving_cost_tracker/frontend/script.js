@@ -785,6 +785,10 @@ function cycleSaleStatus(id) {
   if (!item) return;
   const cur = item.status || 'forsale';
   item.status = SALE_STATUS_CYCLE[(SALE_STATUS_CYCLE.indexOf(cur) + 1) % SALE_STATUS_CYCLE.length];
+  // Pre-fill soldPrice with askPrice so income shows up immediately
+  if (item.status === 'sold' && !item.soldPrice) {
+    item.soldPrice = item.askPrice || 0;
+  }
   saveSaleItems();
   renderSaleItems();
   updateSummary();
