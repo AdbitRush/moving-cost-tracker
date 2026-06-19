@@ -695,6 +695,12 @@ button:active { transform: scale(.97); }
 }
 .sale-undo-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ── Room preset row in cats tab ── */
+.room-preset-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.room-preset-label { font-size: .8rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+.room-preset-btn { border: 1.5px dashed var(--border) !important; color: var(--accent) !important; }
+.room-preset-btn:hover { border-color: var(--accent) !important; background: var(--accent-light) !important; }
+
 /* ──────────────────────────────────────────────────────────
    CATEGORY-COLORED ITEM CARDS
    ────────────────────────────────────────────────────────── */

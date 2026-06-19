@@ -312,6 +312,28 @@ function addCategory() {
   return newCat;
 }
 
+const ROOM_PRESETS = [
+  'כללי', 'חדר שינה ראשי', 'חדר ילדים', 'חדר תינוק',
+  'סלון', 'מטבח', 'מרפסת', 'חדר עבודה', 'חדר אמבטיה',
+];
+
+function addRoomPresets() {
+  const existing = new Set(categories.map(c => c.name));
+  let added = 0;
+  ROOM_PRESETS.forEach(name => {
+    if (!existing.has(name)) {
+      categories.push({ id: nextId(categories), name });
+      added++;
+    }
+  });
+  if (!added) { toast('כל קטגוריות החדר כבר קיימות', ''); return; }
+  saveCategories();
+  renderCategoryChips();
+  renderCategoryDropdown();
+  renderItemsTable();
+  toast(added + ' קטגוריות חדר נוספו ✓', 'success');
+}
+
 // Add category inline from within an item card's expanded detail
 function addCatFromItem(itemId, inp) {
   const name = inp.value.trim();
