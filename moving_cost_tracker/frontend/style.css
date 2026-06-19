@@ -493,6 +493,31 @@ td input:focus, td select:focus { outline: none; border-color: var(--accent); ba
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 99px; }
 
+/* ── Tab pages ── */
+.tab-page { animation: tab-in .18s ease; }
+@keyframes tab-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+/* ── Upcoming widget ── */
+.upcoming-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border); margin-bottom: 8px;
+  background: var(--surface2); transition: all .15s;
+}
+.upcoming-row:hover { border-color: var(--accent); background: var(--accent-light); }
+.upcoming-today { border-color: var(--accent) !important; background: linear-gradient(135deg,#fff8f5,#fdf0ea) !important; }
+.upcoming-near  { border-color: var(--amber); }
+.upcoming-date  { font-size: .78rem; font-weight: 700; color: var(--accent); min-width: 160px; }
+.upcoming-name  { flex: 1; font-size: .88rem; font-weight: 600; color: var(--text); }
+
+/* ── Category breakdown ── */
+.cat-breakdown-list { display: flex; flex-direction: column; gap: 10px; }
+.cat-breakdown-row  { display: flex; align-items: center; gap: 10px; }
+.cat-bar-wrap { flex: 1; height: 10px; background: var(--surface2); border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
+.cat-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 99px; transition: width .5s ease; }
+.cat-breakdown-val   { font-size: .82rem; font-weight: 700; color: var(--text); min-width: 70px; text-align: left; }
+.cat-breakdown-count { font-size: .72rem; color: var(--text-muted); min-width: 60px; }
+
 /* ── Appointment badge (inline under item name) ── */
 .appt-badge { font-size:.72rem; color:var(--purple); font-weight:600; margin-top:3px; }
 .appt-soon  { color:var(--accent); background:var(--accent-light); padding:2px 6px; border-radius:4px; display:inline-block; }

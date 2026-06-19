@@ -71,14 +71,31 @@ function loadStorage() {
 
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
 
+// ── Tabs ──────────────────────────────────────────────────
+const TAB_TITLES = {
+  dashboard: '📊 לוח בקרה',
+  calendar:  '📅 לוח זמנים',
+  items:     '📋 פריטים ועלויות',
+  cats:      '🏷 קטגוריות',
+};
+
+function showTab(name) {
+  document.querySelectorAll('.tab-page').forEach(p => { p.style.display = 'none'; });
+  const page = document.getElementById('tab-' + name);
+  if (page) page.style.display = '';
+  document.querySelectorAll('.sidebar-link[data-tab]').forEach(l => l.classList.remove('active'));
+  const link = document.querySelector('.sidebar-link[data-tab="' + name + '"]');
+  if (link) link.classList.add('active');
+  const title = document.getElementById('topbarTitle');
+  if (title) title.textContent = TAB_TITLES[name] || '';
+  document.getElementById('sidebar').classList.remove('open');
+  if (name === 'calendar') renderCalendar();
+  if (name === 'cats') { renderCategoryChips(); renderCategoryDropdown(); }
+}
+
 // ── Sidebar ───────────────────────────────────────────────
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
-}
-function scrollTo(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  document.getElementById('sidebar').classList.remove('open');
 }
 
 // ── Toast ─────────────────────────────────────────────────
@@ -148,6 +165,57 @@ function updateSummary() {
   if (apptEl) apptEl.textContent = items.filter(i => i.appointment).length;
 
   renderCalendar();
+  renderUpcoming();
+  renderCatBreakdown();
+}
+
+function renderUpcoming() {
+  const panel = document.getElementById('upcomingPanel');
+  if (!panel) return;
+  const now = new Date();
+  const horizon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const upcoming = items
+    .filter(i => i.appointment && new Date(i.appointment) >= now && new Date(i.appointment) <= horizon)
+    .sort((a, b) => a.appointment.localeCompare(b.appointment));
+  if (!upcoming.length) {
+    panel.innerHTML = '<span style="font-size:.85rem;color:var(--text-muted)">אין הגעות מתוכננות בשבוע הקרוב</span>';
+    return;
+  }
+  panel.innerHTML = upcoming.map(it => {
+    const d = new Date(it.appointment);
+    const days = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+    const dateStr = days[d.getDay()] + ' ' +
+      d.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit' }) + ' ' +
+      d.toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' });
+    const diffH = Math.round((d - now) / 3600000);
+    const urgency = diffH < 24 ? 'upcoming-today' : diffH < 72 ? 'upcoming-near' : '';
+    return '<div class="upcoming-row ' + urgency + '" onclick="expandItem(' + it.id + ')">' +
+      '<div class="upcoming-date">📅 ' + dateStr + '</div>' +
+      '<div class="upcoming-name">' + esc(it.name) + '</div>' +
+      '<span class="status-badge status-' + (it.status||'pending') + '">' + STATUS_LABEL[it.status||'pending'] + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+function renderCatBreakdown() {
+  const panel = document.getElementById('catBreakdown');
+  if (!panel) return;
+  if (!categories.length) { panel.innerHTML = '<span style="font-size:.85rem;color:var(--text-muted)">אין קטגוריות</span>'; return; }
+  const totals = categories.map((cat, idx) => {
+    const catItems = items.filter(i => i.category_id === cat.id && i.status !== 'cancelled');
+    const total = catItems.reduce((s, i) => s + (Number(i.price) || 0), 0);
+    return { cat, total, idx, count: catItems.length };
+  }).filter(x => x.count > 0).sort((a, b) => b.total - a.total);
+  if (!totals.length) { panel.innerHTML = '<span style="font-size:.85rem;color:var(--text-muted)">אין פריטים עם קטגוריות</span>'; return; }
+  const maxTotal = totals[0].total || 1;
+  panel.innerHTML = '<div class="cat-breakdown-list">' + totals.map(({ cat, total, idx, count }) =>
+    '<div class="cat-breakdown-row">' +
+      '<span class="cat-chip ' + CAT_COLORS[idx % CAT_COLORS.length] + '" style="min-width:0">' + esc(cat.name) + '</span>' +
+      '<div class="cat-bar-wrap"><div class="cat-bar" style="width:' + Math.round((total/maxTotal)*100) + '%"></div></div>' +
+      '<span class="cat-breakdown-val">₪' + fmt(total) + '</span>' +
+      '<span class="cat-breakdown-count">' + count + ' פריטים</span>' +
+    '</div>'
+  ).join('') + '</div>';
 }
 
 function fmt(n) {
@@ -467,8 +535,8 @@ function calToggleWeeks() {
 
 function expandItem(id) {
   expandedRows.add(id);
+  showTab('items');
   renderItemsTable();
-  scrollTo('section-items');
 }
 
 // ── Init ──────────────────────────────────────────────────
@@ -491,4 +559,5 @@ window.addEventListener('DOMContentLoaded', () => {
   renderCategoryDropdown();
   renderItemsTable();
   updateSummary();
+  showTab('dashboard');
 });
