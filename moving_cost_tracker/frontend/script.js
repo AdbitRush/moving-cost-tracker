@@ -14,6 +14,13 @@ let dragSrcId = null;
 
 const CAT_COLORS = ['cat-0','cat-1','cat-2','cat-3','cat-4','cat-5','cat-6','cat-7'];
 
+// Card background fill colors (match cat-card-N / room-chip-N in CSS)
+const CAT_BG     = ['#eef3ff','#fefce8','#f0fdf4','#fff1f2','#f0f9ff','#faf5ff','#fff8f5','#f0fff4'];
+const CAT_TOP    = ['#e0e9ff','#fef3c7','#d1fae5','#ffe4e6','#e0f2fe','#f3e8ff','#fff7ed','#dcfce7'];
+const CAT_BORDER = ['#c7d2fe','#fde68a','#6ee7b7','#fecdd3','#bae6fd','#d8b4fe','#fed7aa','#86efac'];
+const ROOM_BG    = ['#fef3c7','#e0f2fe','#d1fae5','#fce7f3','#ede9fe','#fef9c3','#d1fae5','#f3f4f6','#cffafe'];
+const ROOM_TOP   = ['#fde68a','#bae6fd','#6ee7b7','#fbcfe8','#c4b5fd','#fef08a','#6ee7b7','#d1d5db','#67e8f9'];
+
 const CAT_OPTION_STYLES = [
   'background:#eef3ff;color:#4338ca',
   'background:#fef3c7;color:#92400e',
@@ -468,9 +475,17 @@ function renderItemsTable() {
       }
     }
 
+    // ── Card split-color background ──
+    const ci       = catIdx >= 0 ? catIdx % 8 : -1;
+    const ri       = roomIdx;
+    const cardCatBg  = ci >= 0 ? CAT_BG[ci]     : null;
+    const cardCatTop = ci >= 0 ? CAT_TOP[ci]     : null;
+    const cardBorder = ci >= 0 ? CAT_BORDER[ci]  : null;
+    const cardRoomBg  = ri >= 0 ? ROOM_BG[ri]    : null;
+    const cardRoomTop = ri >= 0 ? ROOM_TOP[ri]   : null;
+
     // ── Category chip select ──
-    const colorClass   = cat ? CAT_COLORS[catIdx % CAT_COLORS.length] : 'cat-unset';
-    const catCardClass = cat ? ' cat-card-' + (catIdx % CAT_COLORS.length) : '';
+    const colorClass = cat ? CAT_COLORS[catIdx % CAT_COLORS.length] : 'cat-unset';
     const catOpts = '<option value="" style="background:#fff;color:#78716c">ללא קטגוריה</option>' +
       categories.map((c, idx) =>
         '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') +
@@ -539,7 +554,7 @@ function renderItemsTable() {
     ) : '';
 
     const card = document.createElement('div');
-    card.className = 'item-card status-card-' + status + catCardClass;
+    card.className = 'item-card status-card-' + status;
     card.innerHTML =
       '<div class="item-card-top">' +
         dragGrip +
@@ -565,6 +580,23 @@ function renderItemsTable() {
         apptBadge +
       '</div>' +
       detail;
+
+    // ── Split-color background (category right half, room left half) ──
+    if (cardCatBg && cardRoomBg) {
+      card.style.background  = 'linear-gradient(to right,' + cardRoomBg + ' 50%,' + cardCatBg + ' 50%)';
+      card.style.borderColor = cardBorder;
+      const topEl = card.querySelector('.item-card-top');
+      if (topEl) topEl.style.background = 'linear-gradient(to right,' + cardRoomTop + ' 50%,' + cardCatTop + ' 50%)';
+    } else if (cardCatBg) {
+      card.style.background  = cardCatBg;
+      card.style.borderColor = cardBorder;
+      const topEl = card.querySelector('.item-card-top');
+      if (topEl) topEl.style.background = cardCatTop;
+    } else if (cardRoomBg) {
+      card.style.background = cardRoomBg;
+      const topEl = card.querySelector('.item-card-top');
+      if (topEl) topEl.style.background = cardRoomTop;
+    }
 
     // ── Drag & drop (manual sort only) ──
     if (currentSort === 'manual') {
