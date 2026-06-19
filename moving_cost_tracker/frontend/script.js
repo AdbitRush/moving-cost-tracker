@@ -475,15 +475,6 @@ function renderItemsTable() {
       }
     }
 
-    // ── Card split-color background ──
-    const ci       = catIdx >= 0 ? catIdx % 8 : -1;
-    const ri       = roomIdx;
-    const cardCatBg  = ci >= 0 ? CAT_BG[ci]     : null;
-    const cardCatTop = ci >= 0 ? CAT_TOP[ci]     : null;
-    const cardBorder = ci >= 0 ? CAT_BORDER[ci]  : null;
-    const cardRoomBg  = ri >= 0 ? ROOM_BG[ri]    : null;
-    const cardRoomTop = ri >= 0 ? ROOM_TOP[ri]   : null;
-
     // ── Category chip select ──
     const colorClass = cat ? CAT_COLORS[catIdx % CAT_COLORS.length] : 'cat-unset';
     const catOpts = '<option value="" style="background:#fff;color:#78716c">ללא קטגוריה</option>' +
@@ -504,6 +495,14 @@ function renderItemsTable() {
       ).join('');
     const roomSelect = '<select class="cat-chip room-chip ' + roomColorClass + ' inline-cat-select" onchange="patchRoom(' + item.id + ',this)">' +
       roomOpts + '</select>';
+
+    // ── Card split-color background ──
+    const ci         = catIdx >= 0 ? catIdx % 8 : -1;
+    const cardCatBg  = ci >= 0 ? CAT_BG[ci]    : null;
+    const cardCatTop = ci >= 0 ? CAT_TOP[ci]   : null;
+    const cardBorder = ci >= 0 ? CAT_BORDER[ci] : null;
+    const cardRoomBg  = roomIdx >= 0 ? ROOM_BG[roomIdx]  : null;
+    const cardRoomTop = roomIdx >= 0 ? ROOM_TOP[roomIdx] : null;
 
     const dragGrip = currentSort === 'manual'
       ? '<span class="drag-handle" title="גרור לסידור">⠿</span>'
