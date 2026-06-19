@@ -6,9 +6,11 @@ let saleItems = [];
 let config = { budget: 0, currency: 'ILS' };
 let currentFilter = 'all';
 let currentSaleFilter = 'all';
+let currentSort = 'manual';
 let expandedRows = new Set();
 let calWeekStart = null;
 let calWeekCount = 1;
+let dragSrcId = null;
 
 const CAT_COLORS = ['cat-0','cat-1','cat-2','cat-3','cat-4','cat-5','cat-6','cat-7'];
 
@@ -316,23 +318,18 @@ const ROOM_PRESETS = [
   'כללי', 'חדר שינה ראשי', 'חדר ילדים', 'חדר תינוק',
   'סלון', 'מטבח', 'מרפסת', 'חדר עבודה', 'חדר אמבטיה',
 ];
+const ROOM_OPTION_STYLES = [
+  'background:#fef3c7;color:#92400e',
+  'background:#e0f2fe;color:#0c4a6e',
+  'background:#d1fae5;color:#065f46',
+  'background:#fce7f3;color:#9d174d',
+  'background:#ede9fe;color:#5b21b6',
+  'background:#fef9c3;color:#713f12',
+  'background:#d1fae5;color:#14532d',
+  'background:#f3f4f6;color:#374151',
+  'background:#cffafe;color:#155e75',
+];
 
-function addRoomPresets() {
-  const existing = new Set(categories.map(c => c.name));
-  let added = 0;
-  ROOM_PRESETS.forEach(name => {
-    if (!existing.has(name)) {
-      categories.push({ id: nextId(categories), name });
-      added++;
-    }
-  });
-  if (!added) { toast('כל קטגוריות החדר כבר קיימות', ''); return; }
-  saveCategories();
-  renderCategoryChips();
-  renderCategoryDropdown();
-  renderItemsTable();
-  toast(added + ' קטגוריות חדר נוספו ✓', 'success');
-}
 
 // Add category inline from within an item card's expanded detail
 function addCatFromItem(itemId, inp) {
@@ -353,6 +350,45 @@ function addCatFromItem(itemId, inp) {
 function patchCat(id, sel) {
   patch(id, 'category_id', sel.value ? Number(sel.value) : null);
   renderItemsTable();
+}
+
+// Update item room from the inline select in the card top
+function patchRoom(id, sel) {
+  patch(id, 'room', sel.value || null);
+}
+
+// ── Sort ──────────────────────────────────────────────────
+function setSort(btn, sort) {
+  currentSort = sort;
+  document.querySelectorAll('#tab-items .sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderItemsTable();
+}
+
+function sortedItems(vis) {
+  if (currentSort === 'price-desc') return [...vis].sort((a, b) => (Number(b.price)||0) - (Number(a.price)||0));
+  if (currentSort === 'price-asc')  return [...vis].sort((a, b) => (Number(a.price)||0) - (Number(b.price)||0));
+  if (currentSort === 'room') {
+    return [...vis].sort((a, b) => {
+      if (!a.room && !b.room) return 0;
+      if (!a.room) return 1;
+      if (!b.room) return -1;
+      const ri = ROOM_PRESETS.indexOf(a.room);
+      const rj = ROOM_PRESETS.indexOf(b.room);
+      return (ri < 0 ? 99 : ri) - (rj < 0 ? 99 : rj);
+    });
+  }
+  if (currentSort === 'cat') {
+    return [...vis].sort((a, b) => {
+      const ca = categories.find(c => c.id === a.category_id);
+      const cb = categories.find(c => c.id === b.category_id);
+      if (!ca && !cb) return 0;
+      if (!ca) return 1;
+      if (!cb) return -1;
+      return (ca.name || '').localeCompare(cb.name || '', 'he');
+    });
+  }
+  return vis;
 }
 
 // ── Items ─────────────────────────────────────────────────
@@ -403,12 +439,14 @@ function buildQuotesHtml(item) {
 }
 
 function renderItemsTable() {
-  const grid = document.getElementById('itemsGrid');
+  const grid  = document.getElementById('itemsGrid');
   const empty = document.getElementById('emptyState');
   if (!grid) return;
   grid.innerHTML = '';
-  const vis = visibleItems();
+  const vis = sortedItems(visibleItems());
   empty.style.display = vis.length ? 'none' : 'flex';
+
+  let lastGroup = null;
 
   vis.forEach(item => {
     const isExpanded = expandedRows.has(item.id);
@@ -416,8 +454,22 @@ function renderItemsTable() {
     const cat = categories.find(c => c.id === item.category_id);
     const catIdx = cat ? categories.indexOf(cat) : -1;
 
-    // Category as an interactive select (no expand needed to change category)
-    const colorClass = cat ? CAT_COLORS[catIdx % CAT_COLORS.length] : 'cat-unset';
+    // ── Group header (room / category sort) ──
+    if (currentSort === 'room' || currentSort === 'cat') {
+      const group = currentSort === 'room'
+        ? (item.room || 'ללא חדר')
+        : (cat ? cat.name : 'ללא קטגוריה');
+      if (group !== lastGroup) {
+        const hdr = document.createElement('div');
+        hdr.className = 'group-header';
+        hdr.textContent = (currentSort === 'room' ? '🏠 ' : '🏷 ') + group;
+        grid.appendChild(hdr);
+        lastGroup = group;
+      }
+    }
+
+    // ── Category chip select ──
+    const colorClass   = cat ? CAT_COLORS[catIdx % CAT_COLORS.length] : 'cat-unset';
     const catCardClass = cat ? ' cat-card-' + (catIdx % CAT_COLORS.length) : '';
     const catOpts = '<option value="" style="background:#fff;color:#78716c">ללא קטגוריה</option>' +
       categories.map((c, idx) =>
@@ -427,16 +479,29 @@ function renderItemsTable() {
     const catSelect = '<select class="cat-chip ' + colorClass + ' inline-cat-select" onchange="patchCat(' + item.id + ',this)">' +
       catOpts + '</select>';
 
+    // ── Room chip select ──
+    const roomIdx = item.room ? ROOM_PRESETS.indexOf(item.room) : -1;
+    const roomColorClass = roomIdx >= 0 ? 'room-chip-' + roomIdx : 'cat-unset';
+    const roomOpts = '<option value="" style="background:#fff;color:#78716c">🏠 חדר...</option>' +
+      ROOM_PRESETS.map((r, idx) =>
+        '<option value="' + r + '"' + (item.room === r ? ' selected' : '') +
+        ' style="' + ROOM_OPTION_STYLES[idx] + '">' + r + '</option>'
+      ).join('');
+    const roomSelect = '<select class="cat-chip room-chip ' + roomColorClass + ' inline-cat-select" onchange="patchRoom(' + item.id + ',this)">' +
+      roomOpts + '</select>';
+
+    const dragGrip = currentSort === 'manual'
+      ? '<span class="drag-handle" title="גרור לסידור">⠿</span>'
+      : '';
+
     const apptBadge = item.appointment
       ? '<div class="appt-badge' + (isUpcoming(item.appointment) ? ' appt-soon' : '') + '">📅 ' + fmtAppt(item.appointment) + '</div>'
       : '';
 
-    // Phone visible on card face (big and readable)
     const phoneDisplay = item.contact_phone
       ? '<div class="icard-phone">📞 <a href="tel:' + esc(item.contact_phone) + '">' + esc(item.contact_phone) + '</a></div>'
       : '';
 
-    // Expanded detail uses the same catOpts for a full select + inline add-category
     const catOptsDetail = '<option value="" style="background:#fff;color:#78716c">— ללא —</option>' +
       categories.map((c, idx) =>
         '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') +
@@ -461,7 +526,7 @@ function renderItemsTable() {
           '<div><label>הערות</label>' +
             '<input type="text" value="' + esc(item.notes || '') + '"' +
             ' onblur="patch(' + item.id + ',\'notes\',this.value)" placeholder="הערות חופשיות..." /></div>' +
-          '<div class="icard-span2"><label>קטגוריה</label>' +
+          '<div class="icard-span2"><label>קטגוריה (סוג הוצאה)</label>' +
             '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
               '<select style="flex:1;min-width:130px" onchange="patchCat(' + item.id + ',this)">' +
               catOptsDetail + '</select>' +
@@ -477,7 +542,9 @@ function renderItemsTable() {
     card.className = 'item-card status-card-' + status + catCardClass;
     card.innerHTML =
       '<div class="item-card-top">' +
+        dragGrip +
         catSelect +
+        roomSelect +
         '<div class="item-card-top-actions">' +
           '<button class="icard-btn" onclick="toggleExpand(' + item.id + ')">' + (isExpanded ? '▲' : '⋯') + '</button>' +
           '<button class="icard-btn icard-del" onclick="deleteItem(' + item.id + ')">🗑</button>' +
@@ -498,6 +565,32 @@ function renderItemsTable() {
         apptBadge +
       '</div>' +
       detail;
+
+    // ── Drag & drop (manual sort only) ──
+    if (currentSort === 'manual') {
+      card.setAttribute('draggable', 'true');
+      card.addEventListener('dragstart', e => {
+        dragSrcId = item.id;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => card.classList.add('dragging'), 0);
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
+      card.addEventListener('dragleave', e => { if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over'); });
+      card.addEventListener('drop', e => {
+        e.preventDefault();
+        card.classList.remove('drag-over');
+        if (dragSrcId === item.id) return;
+        const srcIdx = items.findIndex(i => i.id === dragSrcId);
+        const tgtIdx = items.findIndex(i => i.id === item.id);
+        if (srcIdx < 0 || tgtIdx < 0) return;
+        const [moved] = items.splice(srcIdx, 1);
+        items.splice(tgtIdx, 0, moved);
+        dragSrcId = null;
+        saveItems();
+        renderItemsTable();
+      });
+    }
 
     grid.appendChild(card);
   });
@@ -569,11 +662,12 @@ function addItem() {
   const catId = document.getElementById('newItemCategory').value ?
     Number(document.getElementById('newItemCategory').value) : null;
   const phone = document.getElementById('newItemPhone').value.trim();
+  const room  = document.getElementById('newItemRoom').value || null;
   if (!name) { toast('הזן שם לפריט', 'error'); return; }
 
   items.push({
     id: nextId(items), name, price, currency: 'ILS',
-    category_id: catId, notes: '', status: 'pending',
+    category_id: catId, room, notes: '', status: 'pending',
     model: '', contact_name: '', contact_phone: phone,
     appointment: '', selected: false, quotes: []
   });
@@ -582,6 +676,7 @@ function addItem() {
   document.getElementById('newItemName').value     = '';
   document.getElementById('newItemPrice').value    = '';
   document.getElementById('newItemCategory').value = '';
+  document.getElementById('newItemRoom').value     = '';
   document.getElementById('newItemPhone').value    = '';
   document.getElementById('newPhoneGroup').style.display = 'none';
   document.getElementById('togglePhoneBtn').textContent  = '+ טלפון';
@@ -632,12 +727,12 @@ function deleteQuote(itemId, quoteId) {
 
 // ── CSV Export ────────────────────────────────────────────
 function exportCsv() {
-  const headers = ['ID','שם','מחיר','סטטוס','קטגוריה','דגם','ספק','טלפון','הערות','מועד הגעה'];
+  const headers = ['ID','שם','מחיר','סטטוס','קטגוריה','חדר','דגם','ספק','טלפון','הערות','מועד הגעה'];
   const rows = items.map(i => {
     const cat = categories.find(c => c.id === i.category_id);
     return [
       i.id, i.name, i.price, STATUS_LABEL[i.status||'pending'],
-      cat ? cat.name : '', i.model||'', i.contact_name||'', i.contact_phone||'', i.notes||'',
+      cat ? cat.name : '', i.room || '', i.model||'', i.contact_name||'', i.contact_phone||'', i.notes||'',
       i.appointment ? fmtAppt(i.appointment) : ''
     ].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',');
   });

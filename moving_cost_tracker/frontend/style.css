@@ -407,14 +407,15 @@ button:active { transform: scale(.97); }
 .status-card-cancelled { border-top: 4px solid #d1d5db; opacity: .65; }
 
 .item-card-top {
-  padding: 10px 14px 8px;
+  padding: 8px 12px 7px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
   background: var(--surface2);
   border-bottom: 1px solid var(--border);
 }
-.item-card-top-actions { display: flex; gap: 6px; }
+.item-card-top-actions { display: flex; gap: 6px; margin-right: auto; }
 
 .icard-btn {
   background: none; border: 1.5px solid var(--border);
@@ -695,11 +696,46 @@ button:active { transform: scale(.97); }
 }
 .sale-undo-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ── Room preset row in cats tab ── */
-.room-preset-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
-.room-preset-label { font-size: .8rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
-.room-preset-btn { border: 1.5px dashed var(--border) !important; color: var(--accent) !important; }
-.room-preset-btn:hover { border-color: var(--accent) !important; background: var(--accent-light) !important; }
+/* ── Sort bar ── */
+.sort-bar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 6px 0 10px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+}
+.sort-label { font-size: .75rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+.sort-btn {
+  padding: 4px 12px; border-radius: 99px; border: 1.5px solid var(--border);
+  background: var(--surface2); color: var(--text-muted); font-size: .78rem; font-weight: 600;
+  cursor: pointer; font-family: var(--font); transition: all .15s;
+}
+.sort-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.sort-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+/* ── Room chip colors ── */
+.room-chip-0 { background: #fef3c7; color: #92400e; border-color: #f59e0b !important; }
+.room-chip-1 { background: #e0f2fe; color: #0c4a6e; border-color: #38bdf8 !important; }
+.room-chip-2 { background: #d1fae5; color: #065f46; border-color: #34d399 !important; }
+.room-chip-3 { background: #fce7f3; color: #9d174d; border-color: #f472b6 !important; }
+.room-chip-4 { background: #ede9fe; color: #5b21b6; border-color: #a78bfa !important; }
+.room-chip-5 { background: #fef9c3; color: #713f12; border-color: #facc15 !important; }
+.room-chip-6 { background: #d1fae5; color: #14532d; border-color: #059669 !important; }
+.room-chip-7 { background: #f3f4f6; color: #374151; border-color: #9ca3af !important; }
+.room-chip-8 { background: #cffafe; color: #155e75; border-color: #22d3ee !important; }
+
+/* ── Drag & drop ── */
+.drag-handle {
+  cursor: grab; font-size: 1.1rem; color: var(--text-muted); padding: 0 6px 0 2px;
+  user-select: none; line-height: 1; flex-shrink: 0;
+}
+.drag-handle:active { cursor: grabbing; }
+.dragging { opacity: .4; }
+.drag-over { outline: 2px dashed var(--accent); outline-offset: 2px; }
+
+/* ── Group header (room / category sort) ── */
+.group-header {
+  grid-column: 1 / -1; font-size: .8rem; font-weight: 800; color: var(--text-muted);
+  letter-spacing: .03em; padding: 10px 4px 4px; border-bottom: 1.5px solid var(--border);
+  margin-bottom: 4px; text-transform: uppercase;
+}
 
 /* ──────────────────────────────────────────────────────────
    CATEGORY-COLORED ITEM CARDS

@@ -189,6 +189,14 @@
               <span class="spacer"></span>
               <input class="search-input" type="text" id="searchInput" placeholder="🔍 חיפוש..." oninput="renderItemsTable()" />
             </div>
+            <div class="sort-bar">
+              <span class="sort-label">מיון:</span>
+              <button class="sort-btn active" onclick="setSort(this,'manual')">⠿ ידני</button>
+              <button class="sort-btn" onclick="setSort(this,'price-desc')">₪ יורד</button>
+              <button class="sort-btn" onclick="setSort(this,'price-asc')">₪ עולה</button>
+              <button class="sort-btn" onclick="setSort(this,'room')">🏠 חדר</button>
+              <button class="sort-btn" onclick="setSort(this,'cat')">🏷 קטגוריה</button>
+            </div>
 
             <div class="items-grid" id="itemsGrid"></div>
             <div class="empty-state" id="emptyState" style="display:none">
@@ -208,8 +216,23 @@
                 <input type="number" id="newItemPrice" placeholder="0" min="0" />
               </div>
               <div class="field-group">
-                <label>קטגוריה</label>
+                <label>קטגוריה (סוג הוצאה)</label>
                 <select id="newItemCategory"></select>
+              </div>
+              <div class="field-group">
+                <label>חדר</label>
+                <select id="newItemRoom">
+                  <option value="">— ללא —</option>
+                  <option value="כללי">כללי</option>
+                  <option value="חדר שינה ראשי">חדר שינה ראשי</option>
+                  <option value="חדר ילדים">חדר ילדים</option>
+                  <option value="חדר תינוק">חדר תינוק</option>
+                  <option value="סלון">סלון</option>
+                  <option value="מטבח">מטבח</option>
+                  <option value="מרפסת">מרפסת</option>
+                  <option value="חדר עבודה">חדר עבודה</option>
+                  <option value="חדר אמבטיה">חדר אמבטיה</option>
+                </select>
               </div>
               <div class="field-group" id="newPhoneGroup" style="display:none">
                 <label>טלפון ספק</label>
@@ -233,12 +256,8 @@
             <h2>🏷 קטגוריות</h2>
           </div>
           <div class="panel-body">
+            <p style="font-size:.8rem;color:var(--text-muted);margin:0 0 10px">קטגוריות = סוג הוצאה (הובלה, ריהוט, חשמל...). החדר של כל פריט נבחר ישירות על הכרטיס.</p>
             <div class="cat-chips" id="catChips"></div>
-            <hr class="divider" />
-            <div class="room-preset-row">
-              <span class="room-preset-label">🏠 הוסף לפי חדר:</span>
-              <button class="btn btn-ghost btn-sm room-preset-btn" onclick="addRoomPresets()">+ כללי, חדר שינה, ילדים, תינוק, סלון, מטבח, מרפסת...</button>
-            </div>
             <hr class="divider" />
             <div class="cat-add-row">
               <input type="text" id="newCatName" placeholder="שם קטגוריה חדשה..." />
