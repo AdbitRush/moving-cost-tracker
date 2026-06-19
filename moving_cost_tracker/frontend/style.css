@@ -515,6 +515,11 @@ td input:focus, td select:focus { outline: none; border-color: var(--accent); ba
 }
 @media(max-width: 1000px) { .cal-grid { grid-template-columns: repeat(4, minmax(110px,1fr)); } }
 @media(max-width: 600px)  { .cal-grid { grid-template-columns: repeat(2, 1fr); } }
+.btn-outline-dark {
+  background: transparent; border: 1.5px solid var(--border);
+  color: var(--text-muted); font-size: .8rem;
+}
+.btn-outline-dark:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 
 .cal-day {
   border: 1.5px solid var(--border); border-radius: 10px;

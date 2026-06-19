@@ -6,6 +6,7 @@ let config = { budget: 0, currency: 'ILS' };
 let currentFilter = 'all';
 let expandedRows = new Set();
 let calWeekStart = null;
+let calWeekCount = 1;
 
 const CAT_COLORS = ['cat-0','cat-1','cat-2','cat-3','cat-4','cat-5','cat-6','cat-7'];
 
@@ -19,18 +20,50 @@ function loadStorage() {
   categories = JSON.parse(localStorage.getItem('mct-categories') || '[]');
   config     = JSON.parse(localStorage.getItem('mct-config')     || '{"budget":0,"currency":"ILS"}');
 
+  if (!categories.length) {
+    categories = [
+      { id:1,  name:'הובלה ולוגיסטיקה' },
+      { id:2,  name:'ריהוט' },
+      { id:3,  name:'מכשירי חשמל' },
+      { id:4,  name:'שיפוצים ובנייה' },
+      { id:5,  name:'אינסטלציה' },
+      { id:6,  name:'חשמל ותאורה' },
+      { id:7,  name:'ניקיון' },
+      { id:8,  name:'שירותים וחיבורים' },
+      { id:9,  name:'אחסון' },
+      { id:10, name:'ביטוח' },
+      { id:11, name:'עיצוב ודקורציה' },
+      { id:12, name:'שונות' },
+    ];
+    saveCategories();
+  }
+
   if (!items.length) {
     items = [
-      { id:1,  name:'מובילים (הובלה)',   price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:2,  name:'אריזות',             price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:3,  name:'מקרר',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:4,  name:'מדיח',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:5,  name:'תנור',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:6,  name:'מיטה',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:7,  name:'ספה',               price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:8,  name:'שירות ניקיון',       price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:9,  name:'דמי העברת שירותים', price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
-      { id:10, name:'הוצאות שונות',       price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:1,  name:'מובילים (הובלה)',      price:0, notes:'', category_id:1,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:2,  name:'אריזות וחומרי אריזה',  price:0, notes:'', category_id:1,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:3,  name:'מקרר',                 price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:4,  name:'מדיח כלים',            price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:5,  name:'תנור ומיקרוגל',        price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:6,  name:'מכונת כביסה',          price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:7,  name:'מזגן',                 price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:8,  name:'מיטה וארגז שינה',      price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:9,  name:'ספה וסלון',            price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:10, name:'ארון בגדים',           price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:11, name:'שולחן אוכל וכיסאות',  price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:12, name:'צבע וטיח',             price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:13, name:'ריצוף',                price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:14, name:'שיפוץ מטבח',           price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:15, name:'שיפוץ אמבטיה',         price:0, notes:'', category_id:5,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:16, name:'חיבור גז',             price:0, notes:'', category_id:5,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:17, name:'חיבור חשמל ולוח',      price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:18, name:'תאורה',                price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:19, name:'שירות ניקיון',         price:0, notes:'', category_id:7,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:20, name:'הדברה',                price:0, notes:'', category_id:7,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:21, name:'חיבור אינטרנט',        price:0, notes:'', category_id:8,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:22, name:'העברת טלפון וגז ומים', price:0, notes:'', category_id:8,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:23, name:'ביטוח דירה',           price:0, notes:'', category_id:10, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:24, name:'הוצאות שונות',         price:0, notes:'', category_id:12, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
     ];
     saveItems();
   }
@@ -376,19 +409,19 @@ function getWeekStart(d) {
 function renderCalendar() {
   const grid = document.getElementById('calGrid');
   if (!grid) return;
-  if (!calWeekStart) calWeekStart = getWeekStart(new Date());
+  if (!calWeekStart) calWeekStart = getWeekStart(new Date('2026-07-15'));
 
   const HEB_DAYS = ['א׳ ראשון','ב׳ שני','ג׳ שלישי','ד׳ רביעי','ה׳ חמישי','ו׳ שישי','ש׳ שבת'];
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const weekEnd = new Date(calWeekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
+  weekEnd.setDate(weekEnd.getDate() + calWeekCount * 7 - 1);
   document.getElementById('calWeekLabel').textContent =
     calWeekStart.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit' }) +
     ' — ' + weekEnd.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric' });
 
   grid.innerHTML = '';
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < calWeekCount * 7; i++) {
     const day = new Date(calWeekStart);
     day.setDate(day.getDate() + i);
     const dayStr = day.toISOString().slice(0, 10);
@@ -422,9 +455,15 @@ function renderCalendar() {
   }
 }
 
-function calPrevWeek() { calWeekStart.setDate(calWeekStart.getDate() - 7); renderCalendar(); }
-function calNextWeek() { calWeekStart.setDate(calWeekStart.getDate() + 7); renderCalendar(); }
+function calPrevWeek() { calWeekStart.setDate(calWeekStart.getDate() - calWeekCount * 7); renderCalendar(); }
+function calNextWeek() { calWeekStart.setDate(calWeekStart.getDate() + calWeekCount * 7); renderCalendar(); }
 function calToday()    { calWeekStart = getWeekStart(new Date()); renderCalendar(); }
+function calToggleWeeks() {
+  calWeekCount = calWeekCount === 1 ? 2 : 1;
+  const btn = document.getElementById('calToggleBtn');
+  if (btn) btn.textContent = calWeekCount === 1 ? '2 שבועות ▼' : 'שבוע ▲';
+  renderCalendar();
+}
 
 function expandItem(id) {
   expandedRows.add(id);

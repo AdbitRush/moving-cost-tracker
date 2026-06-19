@@ -123,10 +123,11 @@
         </div>
         <div class="panel-body">
           <div class="cal-nav">
-            <button class="btn btn-ghost btn-sm" onclick="calPrevWeek()">→ שבוע קודם</button>
+            <button class="btn btn-ghost btn-sm" onclick="calPrevWeek()">→ קודם</button>
             <button class="btn btn-primary btn-sm" onclick="calToday()">היום</button>
             <span id="calWeekLabel">—</span>
-            <button class="btn btn-ghost btn-sm" onclick="calNextWeek()">שבוע הבא ←</button>
+            <button class="btn btn-ghost btn-sm" onclick="calNextWeek()">הבא ←</button>
+            <button class="btn btn-outline-dark btn-sm" id="calToggleBtn" onclick="calToggleWeeks()">2 שבועות ▼</button>
           </div>
           <div class="cal-grid" id="calGrid"></div>
         </div>
