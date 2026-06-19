@@ -410,12 +410,19 @@ button:active { transform: scale(.97); }
   padding: 8px 12px 7px;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 6px;
   background: var(--surface2);
   border-bottom: 1px solid var(--border);
 }
 .item-card-top-actions { display: flex; gap: 6px; margin-right: auto; }
+
+.item-card-room {
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
 
 .icard-btn {
   background: none; border: 1.5px solid var(--border);

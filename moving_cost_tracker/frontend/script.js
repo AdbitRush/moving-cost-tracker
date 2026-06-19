@@ -558,11 +558,13 @@ function renderItemsTable() {
       '<div class="item-card-top">' +
         dragGrip +
         catSelect +
-        roomSelect +
         '<div class="item-card-top-actions">' +
           '<button class="icard-btn" onclick="toggleExpand(' + item.id + ')">' + (isExpanded ? '▲' : '⋯') + '</button>' +
           '<button class="icard-btn icard-del" onclick="deleteItem(' + item.id + ')">🗑</button>' +
         '</div>' +
+      '</div>' +
+      '<div class="item-card-room">' +
+        roomSelect +
       '</div>' +
       '<div class="item-card-body">' +
         '<input class="icard-name" type="text" value="' + esc(item.name) + '"' +
@@ -580,22 +582,12 @@ function renderItemsTable() {
       '</div>' +
       detail;
 
-    // ── Split-color background (category right half, room left half) ──
-    if (cardCatBg && cardRoomBg) {
-      card.style.background  = 'linear-gradient(to right,' + cardRoomBg + ' 50%,' + cardCatBg + ' 50%)';
-      card.style.borderColor = cardBorder;
-      const topEl = card.querySelector('.item-card-top');
-      if (topEl) topEl.style.background = 'linear-gradient(to right,' + cardRoomTop + ' 50%,' + cardCatTop + ' 50%)';
-    } else if (cardCatBg) {
-      card.style.background  = cardCatBg;
-      card.style.borderColor = cardBorder;
-      const topEl = card.querySelector('.item-card-top');
-      if (topEl) topEl.style.background = cardCatTop;
-    } else if (cardRoomBg) {
-      card.style.background = cardRoomBg;
-      const topEl = card.querySelector('.item-card-top');
-      if (topEl) topEl.style.background = cardRoomTop;
-    }
+    // ── Two-bar colors: category bar on top, room bar below ──
+    if (cardBorder) card.style.borderColor = cardBorder;
+    const topEl  = card.querySelector('.item-card-top');
+    const roomEl = card.querySelector('.item-card-room');
+    if (topEl  && cardCatTop)  topEl.style.background  = cardCatTop;
+    if (roomEl && cardRoomBg)  roomEl.style.background = cardRoomBg;
 
     // ── Drag & drop (manual sort only) ──
     if (currentSort === 'manual') {
