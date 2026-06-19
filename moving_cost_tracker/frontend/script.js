@@ -5,6 +5,7 @@ let items = [];
 let config = { budget: 0, currency: 'ILS' };
 let currentFilter = 'all';
 let expandedRows = new Set();
+let calWeekStart = null;
 
 const CAT_COLORS = ['cat-0','cat-1','cat-2','cat-3','cat-4','cat-5','cat-6','cat-7'];
 
@@ -20,16 +21,16 @@ function loadStorage() {
 
   if (!items.length) {
     items = [
-      { id:1,  name:'מובילים (הובלה)',   price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:2,  name:'אריזות',             price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:3,  name:'מקרר',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:4,  name:'מדיח',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:5,  name:'תנור',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:6,  name:'מיטה',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:7,  name:'ספה',               price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:8,  name:'שירות ניקיון',       price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:9,  name:'דמי העברת שירותים', price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
-      { id:10, name:'הוצאות שונות',       price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'' },
+      { id:1,  name:'מובילים (הובלה)',   price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:2,  name:'אריזות',             price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:3,  name:'מקרר',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:4,  name:'מדיח',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:5,  name:'תנור',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:6,  name:'מיטה',              price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:7,  name:'ספה',               price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:8,  name:'שירות ניקיון',       price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:9,  name:'דמי העברת שירותים', price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
+      { id:10, name:'הוצאות שונות',       price:0, notes:'', category_id:null, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'' },
     ];
     saveItems();
   }
@@ -110,6 +111,10 @@ function updateSummary() {
   document.getElementById('sb-remaining').textContent = (remaining < 0 ? '-' : '') + '₪' + fmt(Math.abs(remaining));
   document.getElementById('sb-items-count').textContent = activeCount;
   document.getElementById('sb-cats-count').textContent  = categories.length;
+  const apptEl = document.getElementById('sb-appt-count');
+  if (apptEl) apptEl.textContent = items.filter(i => i.appointment).length;
+
+  renderCalendar();
 }
 
 function fmt(n) {
@@ -203,12 +208,17 @@ function renderItemsTable() {
       esc(c.name) + '</option>'
     ).join('');
 
+    const apptBadge = item.appointment
+      ? '<div class="appt-badge' + (isUpcoming(item.appointment) ? ' appt-soon' : '') + '">' +
+        '📅 ' + fmtAppt(item.appointment) + '</div>'
+      : '';
+
     tr.innerHTML =
       '<td style="text-align:center">' +
         '<input type="checkbox"' + (item.selected ? ' checked' : '') +
         ' onchange="toggleSelect(' + item.id + ',this.checked)" /></td>' +
       '<td><input type="text" value="' + esc(item.name) + '" style="min-width:120px"' +
-        ' onblur="patch(' + item.id + ',\'name\',this.value)" /></td>' +
+        ' onblur="patch(' + item.id + ',\'name\',this.value)" />' + apptBadge + '</td>' +
       '<td><div class="price-cell"><span class="currency">₪</span>' +
         '<input type="number" value="' + (item.price || 0) + '" min="0" style="width:90px"' +
         ' onchange="patch(' + item.id + ',\'price\',Number(this.value));updateSummary()" /></div></td>' +
@@ -237,7 +247,10 @@ function renderItemsTable() {
         '<div><label>טלפון ספק</label>' +
         '<input type="text" value="' + esc(item.contact_phone || '') + '"' +
         ' onblur="patch(' + item.id + ',\'contact_phone\',this.value)" placeholder="050-..." /></div>' +
-        '<div style="grid-column:span 3"><label>הערות</label>' +
+        '<div><label>📅 תאריך ושעת הגעה</label>' +
+        '<input type="datetime-local" value="' + esc(item.appointment || '') + '"' +
+        ' onchange="patch(' + item.id + ',\'appointment\',this.value);renderItemsTable()" style="width:100%" /></div>' +
+        '<div style="grid-column:span 2"><label>הערות</label>' +
         '<input type="text" value="' + esc(item.notes || '') + '"' +
         ' onblur="patch(' + item.id + ',\'notes\',this.value)" placeholder="הערות חופשיות..." /></div>' +
         '</div></td>';
@@ -247,6 +260,21 @@ function renderItemsTable() {
 }
 
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function fmtAppt(dt) {
+  if (!dt) return '';
+  const d = new Date(dt);
+  const days = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+  return days[d.getDay()] + ' ' +
+    d.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit' }) + ' ' +
+    d.toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' });
+}
+
+function isUpcoming(dt) {
+  if (!dt) return false;
+  const diff = new Date(dt) - new Date();
+  return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000; // within 3 days
+}
 
 function patch(id, key, value) {
   const item = items.find(i => i.id === id);
@@ -302,7 +330,8 @@ function addItem() {
   items.push({
     id: nextId(items), name, price, currency: 'ILS',
     category_id: catId, notes: '', status: 'pending',
-    model: '', contact_name: '', contact_phone: phone, selected: false
+    model: '', contact_name: '', contact_phone: phone,
+    appointment: '', selected: false
   });
   saveItems();
 
@@ -320,12 +349,13 @@ function addItem() {
 
 // ── CSV Export ────────────────────────────────────────────
 function exportCsv() {
-  const headers = ['ID','שם','מחיר','סטטוס','קטגוריה','דגם','ספק','טלפון','הערות'];
+  const headers = ['ID','שם','מחיר','סטטוס','קטגוריה','דגם','ספק','טלפון','הערות','מועד הגעה'];
   const rows = items.map(i => {
     const cat = categories.find(c => c.id === i.category_id);
     return [
       i.id, i.name, i.price, STATUS_LABEL[i.status||'pending'],
-      cat ? cat.name : '', i.model||'', i.contact_name||'', i.contact_phone||'', i.notes||''
+      cat ? cat.name : '', i.model||'', i.contact_name||'', i.contact_phone||'', i.notes||'',
+      i.appointment ? fmtAppt(i.appointment) : ''
     ].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',');
   });
   const blob = new Blob(['﻿' + [headers.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -333,6 +363,73 @@ function exportCsv() {
   a.href = URL.createObjectURL(blob);
   a.download = 'moving-costs.csv';
   a.click();
+}
+
+// ── Calendar ──────────────────────────────────────────────
+function getWeekStart(d) {
+  const dt = new Date(d);
+  dt.setDate(dt.getDate() - dt.getDay());
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  if (!calWeekStart) calWeekStart = getWeekStart(new Date());
+
+  const HEB_DAYS = ['א׳ ראשון','ב׳ שני','ג׳ שלישי','ד׳ רביעי','ה׳ חמישי','ו׳ שישי','ש׳ שבת'];
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const weekEnd = new Date(calWeekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  document.getElementById('calWeekLabel').textContent =
+    calWeekStart.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit' }) +
+    ' — ' + weekEnd.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+  grid.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(calWeekStart);
+    day.setDate(day.getDate() + i);
+    const dayStr = day.toISOString().slice(0, 10);
+    const isToday = dayStr === todayStr;
+
+    const dayItems = items
+      .filter(it => it.appointment && it.appointment.slice(0, 10) === dayStr)
+      .sort((a, b) => a.appointment.localeCompare(b.appointment));
+
+    const col = document.createElement('div');
+    col.className = 'cal-day' + (isToday ? ' cal-today' : '');
+
+    const events = dayItems.map(it => {
+      const time = new Date(it.appointment).toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' });
+      const soon = isUpcoming(it.appointment);
+      return '<div class="cal-event' + (soon ? ' cal-event-soon' : '') + '" onclick="expandItem(' + it.id + ')">' +
+        '<span class="cal-event-time">' + time + '</span>' +
+        '<span class="cal-event-name">' + esc(it.name) + '</span>' +
+        '<span class="cal-event-badge status-' + (it.status||'pending') + '">' + STATUS_LABEL[it.status||'pending'] + '</span>' +
+        '</div>';
+    }).join('');
+
+    col.innerHTML =
+      '<div class="cal-day-header">' +
+        '<span class="cal-day-name">' + HEB_DAYS[i] + '</span>' +
+        '<span class="cal-day-date">' + day.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit' }) + '</span>' +
+      '</div>' +
+      '<div class="cal-events">' + (events || '<div class="cal-empty">ריק</div>') + '</div>';
+
+    grid.appendChild(col);
+  }
+}
+
+function calPrevWeek() { calWeekStart.setDate(calWeekStart.getDate() - 7); renderCalendar(); }
+function calNextWeek() { calWeekStart.setDate(calWeekStart.getDate() + 7); renderCalendar(); }
+function calToday()    { calWeekStart = getWeekStart(new Date()); renderCalendar(); }
+
+function expandItem(id) {
+  expandedRows.add(id);
+  renderItemsTable();
+  scrollTo('section-items');
 }
 
 // ── Init ──────────────────────────────────────────────────
