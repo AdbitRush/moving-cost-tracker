@@ -675,6 +675,33 @@ button:active { transform: scale(.97); }
 .hero-sales-amount { font-weight: 800; color: #5eead4; font-size: .95rem; }
 
 /* ──────────────────────────────────────────────────────────
+   CATEGORY-COLORED ITEM CARDS
+   ────────────────────────────────────────────────────────── */
+.cat-card-0 { background: #eef3ff; border-color: #c7d2fe; }
+.cat-card-0 .item-card-top { background: #e0e9ff; border-bottom-color: #c7d2fe; }
+
+.cat-card-1 { background: #fefce8; border-color: #fde68a; }
+.cat-card-1 .item-card-top { background: #fef3c7; border-bottom-color: #fde68a; }
+
+.cat-card-2 { background: #f0fdf4; border-color: #6ee7b7; }
+.cat-card-2 .item-card-top { background: #d1fae5; border-bottom-color: #6ee7b7; }
+
+.cat-card-3 { background: #fff1f2; border-color: #fecdd3; }
+.cat-card-3 .item-card-top { background: #ffe4e6; border-bottom-color: #fecdd3; }
+
+.cat-card-4 { background: #f0f9ff; border-color: #bae6fd; }
+.cat-card-4 .item-card-top { background: #e0f2fe; border-bottom-color: #bae6fd; }
+
+.cat-card-5 { background: #faf5ff; border-color: #d8b4fe; }
+.cat-card-5 .item-card-top { background: #f3e8ff; border-bottom-color: #d8b4fe; }
+
+.cat-card-6 { background: #fff8f5; border-color: #fed7aa; }
+.cat-card-6 .item-card-top { background: #fff7ed; border-bottom-color: #fed7aa; }
+
+.cat-card-7 { background: #f0fff4; border-color: #86efac; }
+.cat-card-7 .item-card-top { background: #dcfce7; border-bottom-color: #86efac; }
+
+/* ──────────────────────────────────────────────────────────
    CATEGORY AS INLINE SELECT (card top)
    ────────────────────────────────────────────────────────── */
 .inline-cat-select {

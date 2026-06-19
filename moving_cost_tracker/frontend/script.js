@@ -12,6 +12,17 @@ let calWeekCount = 1;
 
 const CAT_COLORS = ['cat-0','cat-1','cat-2','cat-3','cat-4','cat-5','cat-6','cat-7'];
 
+const CAT_OPTION_STYLES = [
+  'background:#eef3ff;color:#4338ca',
+  'background:#fef3c7;color:#92400e',
+  'background:#d1fae5;color:#065f46',
+  'background:#ffe4e6;color:#9f1239',
+  'background:#e0f2fe;color:#0c4a6e',
+  'background:#f3e8ff;color:#6b21a8',
+  'background:#fff7ed;color:#9a3412',
+  'background:#f0fdf4;color:#14532d',
+];
+
 // ── Storage ───────────────────────────────────────────────
 function saveItems()      { localStorage.setItem('mct-items',      JSON.stringify(items)); }
 function saveCategories() { localStorage.setItem('mct-categories', JSON.stringify(categories)); }
@@ -385,9 +396,11 @@ function renderItemsTable() {
 
     // Category as an interactive select (no expand needed to change category)
     const colorClass = cat ? CAT_COLORS[catIdx % CAT_COLORS.length] : 'cat-unset';
-    const catOpts = '<option value="">ללא קטגוריה</option>' +
-      categories.map(c =>
-        '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') + '>' + esc(c.name) + '</option>'
+    const catCardClass = cat ? ' cat-card-' + (catIdx % CAT_COLORS.length) : '';
+    const catOpts = '<option value="" style="background:#fff;color:#78716c">ללא קטגוריה</option>' +
+      categories.map((c, idx) =>
+        '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') +
+        ' style="' + CAT_OPTION_STYLES[idx % CAT_OPTION_STYLES.length] + '">' + esc(c.name) + '</option>'
       ).join('');
     const catSelect = '<select class="cat-chip ' + colorClass + ' inline-cat-select" onchange="patchCat(' + item.id + ',this)">' +
       catOpts + '</select>';
@@ -402,9 +415,10 @@ function renderItemsTable() {
       : '';
 
     // Expanded detail uses the same catOpts for a full select + inline add-category
-    const catOptsDetail = '<option value="">— ללא —</option>' +
-      categories.map(c =>
-        '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') + '>' + esc(c.name) + '</option>'
+    const catOptsDetail = '<option value="" style="background:#fff;color:#78716c">— ללא —</option>' +
+      categories.map((c, idx) =>
+        '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') +
+        ' style="' + CAT_OPTION_STYLES[idx % CAT_OPTION_STYLES.length] + '">' + esc(c.name) + '</option>'
       ).join('');
 
     const detail = isExpanded ? (
@@ -438,7 +452,7 @@ function renderItemsTable() {
     ) : '';
 
     const card = document.createElement('div');
-    card.className = 'item-card status-card-' + status;
+    card.className = 'item-card status-card-' + status + catCardClass;
     card.innerHTML =
       '<div class="item-card-top">' +
         catSelect +
