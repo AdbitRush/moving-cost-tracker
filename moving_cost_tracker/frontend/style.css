@@ -674,6 +674,27 @@ button:active { transform: scale(.97); }
 }
 .hero-sales-amount { font-weight: 800; color: #5eead4; font-size: .95rem; }
 
+/* ── Sale action buttons ── */
+.sale-got-money-btn {
+  display: block; width: calc(100% - 32px); margin: 0 16px 14px;
+  padding: 12px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, #0d9488 0%, #0fb8ab 100%);
+  color: #fff; font-size: 1rem; font-weight: 800;
+  cursor: pointer; font-family: var(--font);
+  box-shadow: 0 3px 12px rgba(13,148,136,.4);
+  transition: all .15s;
+}
+.sale-got-money-btn:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(13,148,136,.45); }
+.sale-got-money-btn:active { transform: scale(.97); }
+
+.sale-undo-btn {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 10px; font-size: .75rem;
+  color: var(--text-muted); cursor: pointer; font-family: var(--font);
+  transition: all .15s;
+}
+.sale-undo-btn:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ──────────────────────────────────────────────────────────
    CATEGORY-COLORED ITEM CARDS
    ────────────────────────────────────────────────────────── */

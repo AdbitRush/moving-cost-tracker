@@ -747,6 +747,13 @@ function renderSaleItems() {
       ? '<span style="font-size:.75rem;color:var(--text-muted);margin-right:6px">📝 ' + esc(item.notes) + '</span>'
       : '';
 
+    const soldBtn = status === 'forsale'
+      ? '<button class="sale-got-money-btn" onclick="cycleSaleStatus(' + item.id + ')">✅ קיבלתי את הכסף!</button>'
+      : '';
+    const undoBtn = status === 'sold'
+      ? '<button class="sale-undo-btn" onclick="cycleSaleStatus(' + item.id + ')">↩ בטל</button>'
+      : '';
+
     const card = document.createElement('div');
     card.className = 'item-card sale-card-' + status;
     card.innerHTML =
@@ -764,8 +771,10 @@ function renderSaleItems() {
         '</div>' +
         soldPriceHtml +
       '</div>' +
+      soldBtn +
       '<div class="item-card-footer">' +
-        '<span class="status-badge status-' + status + '" onclick="cycleSaleStatus(' + item.id + ')" title="לחץ לשינוי">' + SALE_STATUS_LABEL[status] + '</span>' +
+        '<span class="status-badge status-' + status + '">' + SALE_STATUS_LABEL[status] + '</span>' +
+        undoBtn +
         notesHtml +
       '</div>';
 
