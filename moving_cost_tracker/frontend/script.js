@@ -291,72 +291,82 @@ const STATUS_CYCLE = ['pending', 'paid', 'cancelled'];
 const STATUS_LABEL = { pending: 'ממתין', paid: 'שולם', cancelled: 'בוטל' };
 
 function renderItemsTable() {
-  const tbody = document.getElementById('itemsTbody');
+  const grid = document.getElementById('itemsGrid');
   const empty = document.getElementById('emptyState');
-  tbody.innerHTML = '';
+  if (!grid) return;
+  grid.innerHTML = '';
   const vis = visibleItems();
-  empty.style.display = vis.length ? 'none' : 'block';
+  empty.style.display = vis.length ? 'none' : 'flex';
 
   vis.forEach(item => {
     const isExpanded = expandedRows.has(item.id);
     const status = item.status || 'pending';
+    const cat = categories.find(c => c.id === item.category_id);
+    const catIdx = cat ? categories.indexOf(cat) : -1;
 
-    const tr = document.createElement('tr');
-    if (status === 'paid') tr.classList.add('selected');
-
-    const catOpts = categories.map(c =>
-      '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') + '>' +
-      esc(c.name) + '</option>'
-    ).join('');
+    const catBadge = cat
+      ? '<span class="cat-chip ' + CAT_COLORS[catIdx % CAT_COLORS.length] + '" style="font-size:.7rem;padding:3px 10px">' + esc(cat.name) + '</span>'
+      : '<span class="cat-chip cat-unset">ללא קטגוריה</span>';
 
     const apptBadge = item.appointment
-      ? '<div class="appt-badge' + (isUpcoming(item.appointment) ? ' appt-soon' : '') + '">' +
-        '📅 ' + fmtAppt(item.appointment) + '</div>'
+      ? '<div class="appt-badge' + (isUpcoming(item.appointment) ? ' appt-soon' : '') + '">📅 ' + fmtAppt(item.appointment) + '</div>'
       : '';
 
-    tr.innerHTML =
-      '<td style="text-align:center">' +
-        '<input type="checkbox"' + (item.selected ? ' checked' : '') +
-        ' onchange="toggleSelect(' + item.id + ',this.checked)" /></td>' +
-      '<td><input type="text" value="' + esc(item.name) + '" style="min-width:120px"' +
-        ' onblur="patch(' + item.id + ',\'name\',this.value)" />' + apptBadge + '</td>' +
-      '<td><div class="price-cell"><span class="currency">₪</span>' +
-        '<input type="number" value="' + (item.price || 0) + '" min="0" style="width:90px"' +
-        ' onchange="patch(' + item.id + ',\'price\',Number(this.value));updateSummary()" /></div></td>' +
-      '<td><select onchange="patch(' + item.id + ',\'category_id\',this.value?Number(this.value):null)">' +
-        '<option value="">—</option>' + catOpts + '</select></td>' +
-      '<td onclick="cycleStatus(' + item.id + ')" style="cursor:pointer">' +
-        '<span class="status-badge status-' + status + '" title="לחץ לשינוי">' + STATUS_LABEL[status] + '</span></td>' +
-      '<td style="text-align:center">' +
-        '<button class="expand-btn" onclick="toggleExpand(' + item.id + ')">' + (isExpanded ? '▲' : '⋯') + '</button></td>' +
-      '<td style="text-align:center">' +
-        '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + item.id + ')">🗑</button></td>';
+    const catOpts = categories.map(c =>
+      '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') + '>' + esc(c.name) + '</option>'
+    ).join('');
 
-    tbody.appendChild(tr);
+    const detail = isExpanded ? (
+      '<div class="item-card-detail">' +
+        '<div class="icard-detail-grid">' +
+          '<div><label>דגם / פרט</label>' +
+            '<input type="text" value="' + esc(item.model || '') + '"' +
+            ' onblur="patch(' + item.id + ',\'model\',this.value)" placeholder="LG GBB61..." /></div>' +
+          '<div><label>שם ספק</label>' +
+            '<input type="text" value="' + esc(item.contact_name || '') + '"' +
+            ' onblur="patch(' + item.id + ',\'contact_name\',this.value)" placeholder="שם" /></div>' +
+          '<div><label>טלפון ספק</label>' +
+            '<input type="text" value="' + esc(item.contact_phone || '') + '"' +
+            ' onblur="patch(' + item.id + ',\'contact_phone\',this.value)" placeholder="050-..." /></div>' +
+          '<div><label>📅 תאריך ושעת הגעה</label>' +
+            '<input type="datetime-local" value="' + esc(item.appointment || '') + '"' +
+            ' onchange="patch(' + item.id + ',\'appointment\',this.value);renderItemsTable()" /></div>' +
+          '<div class="icard-span2"><label>קטגוריה</label>' +
+            '<select onchange="patch(' + item.id + ',\'category_id\',this.value?Number(this.value):null);renderItemsTable()">' +
+            '<option value="">— ללא —</option>' + catOpts + '</select></div>' +
+          '<div class="icard-span2"><label>הערות</label>' +
+            '<input type="text" value="' + esc(item.notes || '') + '"' +
+            ' onblur="patch(' + item.id + ',\'notes\',this.value)" placeholder="הערות חופשיות..." /></div>' +
+        '</div>' +
+      '</div>'
+    ) : '';
 
-    if (isExpanded) {
-      const dtr = document.createElement('tr');
-      dtr.className = 'details-row';
-      dtr.innerHTML =
-        '<td></td><td colspan="6"><div class="details-grid">' +
-        '<div><label>דגם / פרט</label>' +
-        '<input type="text" value="' + esc(item.model || '') + '"' +
-        ' onblur="patch(' + item.id + ',\'model\',this.value)" placeholder="לדוגמה: LG GBB61" /></div>' +
-        '<div><label>שם ספק</label>' +
-        '<input type="text" value="' + esc(item.contact_name || '') + '"' +
-        ' onblur="patch(' + item.id + ',\'contact_name\',this.value)" placeholder="שם" /></div>' +
-        '<div><label>טלפון ספק</label>' +
-        '<input type="text" value="' + esc(item.contact_phone || '') + '"' +
-        ' onblur="patch(' + item.id + ',\'contact_phone\',this.value)" placeholder="050-..." /></div>' +
-        '<div><label>📅 תאריך ושעת הגעה</label>' +
-        '<input type="datetime-local" value="' + esc(item.appointment || '') + '"' +
-        ' onchange="patch(' + item.id + ',\'appointment\',this.value);renderItemsTable()" style="width:100%" /></div>' +
-        '<div style="grid-column:span 2"><label>הערות</label>' +
-        '<input type="text" value="' + esc(item.notes || '') + '"' +
-        ' onblur="patch(' + item.id + ',\'notes\',this.value)" placeholder="הערות חופשיות..." /></div>' +
-        '</div></td>';
-      tbody.appendChild(dtr);
-    }
+    const card = document.createElement('div');
+    card.className = 'item-card status-card-' + status;
+    card.innerHTML =
+      '<div class="item-card-top">' +
+        catBadge +
+        '<div class="item-card-top-actions">' +
+          '<button class="icard-btn" onclick="toggleExpand(' + item.id + ')">' + (isExpanded ? '▲' : '⋯') + '</button>' +
+          '<button class="icard-btn icard-del" onclick="deleteItem(' + item.id + ')">🗑</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="item-card-body">' +
+        '<input class="icard-name" type="text" value="' + esc(item.name) + '"' +
+          ' onblur="patch(' + item.id + ',\'name\',this.value)" />' +
+        '<div class="icard-price-row">' +
+          '<span class="icard-curr">₪</span>' +
+          '<input class="icard-price" type="number" value="' + (item.price || 0) + '" min="0"' +
+            ' onchange="patch(' + item.id + ',\'price\',Number(this.value));updateSummary()" />' +
+        '</div>' +
+      '</div>' +
+      '<div class="item-card-footer">' +
+        '<span class="status-badge status-' + status + '" onclick="cycleStatus(' + item.id + ')" title="לחץ לשינוי">' + STATUS_LABEL[status] + '</span>' +
+        apptBadge +
+      '</div>' +
+      detail;
+
+    grid.appendChild(card);
   });
 }
 

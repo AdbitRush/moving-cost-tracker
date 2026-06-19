@@ -177,25 +177,10 @@
               <input class="search-input" type="text" id="searchInput" placeholder="🔍 חיפוש..." oninput="renderItemsTable()" />
             </div>
 
-            <div class="items-table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width:36px"></th>
-                    <th>פריט</th>
-                    <th>מחיר (₪)</th>
-                    <th>קטגוריה</th>
-                    <th>סטטוס</th>
-                    <th style="width:40px">⋯</th>
-                    <th style="width:40px"></th>
-                  </tr>
-                </thead>
-                <tbody id="itemsTbody"></tbody>
-              </table>
-              <div class="empty-state" id="emptyState" style="display:none">
-                <div class="icon">📦</div>
-                <p>אין פריטים. הוסף פריט חדש למטה.</p>
-              </div>
+            <div class="items-grid" id="itemsGrid"></div>
+            <div class="empty-state" id="emptyState" style="display:none">
+              <div class="icon">📦</div>
+              <p>אין פריטים. הוסף פריט חדש למטה.</p>
             </div>
 
             <div class="divider"></div>
