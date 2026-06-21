@@ -129,6 +129,11 @@ function loadStorage() {
   config     = JSON.parse(localStorage.getItem('mct-config')     || '{"budget":0,"currency":"ILS"}');
   saleItems  = JSON.parse(localStorage.getItem('mct-sales')      || '[]');
 
+  // remove room names that leaked into categories in a previous version
+  const before = categories.length;
+  categories = categories.filter(c => !ROOM_PRESETS.includes(c.name));
+  if (categories.length !== before) saveCategories();
+
   if (!categories.length) {
     categories = [
       { id:1,  name:'הובלה ולוגיסטיקה' },
@@ -206,7 +211,7 @@ function showTab(name) {
   if (title) title.textContent = TAB_TITLES[name] || '';
   document.getElementById('sidebar').classList.remove('open');
   if (name === 'calendar') renderCalendar();
-  if (name === 'cats') { renderCategoryChips(); renderCategoryDropdown(); }
+  if (name === 'cats') { renderCategoryChips(); renderRoomChips(); renderCategoryDropdown(); }
   if (name === 'sales') renderSaleItems();
 }
 
@@ -360,6 +365,18 @@ function localDateStr(d) {
 }
 
 // ── Categories ────────────────────────────────────────────
+function renderRoomChips() {
+  const wrap = document.getElementById('roomChips');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  ROOM_PRESETS.forEach((room, idx) => {
+    const chip = document.createElement('span');
+    chip.className = 'cat-chip room-chip-' + idx;
+    chip.textContent = room;
+    wrap.appendChild(chip);
+  });
+}
+
 function renderCategoryChips() {
   const wrap = document.getElementById('catChips');
   wrap.innerHTML = '';
