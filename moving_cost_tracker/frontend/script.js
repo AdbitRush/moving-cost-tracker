@@ -1123,30 +1123,25 @@ function importJSON(event) {
   reader.readAsText(file);
 }
 
-// ── GitHub Sync (load = public API, save = Vercel function + password) ───────
-const GH_API_BASE = 'https://api.github.com/repos/AdbitRush/moving-cost-tracker/contents/moving_cost_tracker/data';
-const SYNC_API    = localStorage.getItem('mct-api-url') || '/api/sync';
+// ── Server Sync — load and save via the backend at /api/sync ─────────────────
+// When served from the Node server (port 3456), /api/sync is relative and just works.
+// From any other origin (GitHub Pages etc.) set mct-api-url in localStorage to
+// point at the server, e.g. http://YOUR-SERVER-IP:3456/api/sync
+const SYNC_API = (localStorage.getItem('mct-api-url') || '/api/sync');
 
-async function loadFromGitHub() {
-  toast('טוען מ-GitHub...', 'info');
+async function loadFromServer() {
+  toast('טוען מהשרת...', 'info');
   try {
-    const [iR, cfR, cR, sR] = await Promise.all([
-      fetch(GH_API_BASE + '/items.json',      { headers: { Accept: 'application/vnd.github+json' } }),
-      fetch(GH_API_BASE + '/config.json',     { headers: { Accept: 'application/vnd.github+json' } }),
-      fetch(GH_API_BASE + '/categories.json', { headers: { Accept: 'application/vnd.github+json' } }),
-      fetch(GH_API_BASE + '/sales.json',      { headers: { Accept: 'application/vnd.github+json' } }),
-    ]);
-    const decode = r => r.ok ? r.json().then(f => JSON.parse(atob(f.content.replace(/\n/g,'')))) : Promise.resolve(null);
-    const [iData, cfData, cData, sData] = await Promise.all([decode(iR), decode(cfR), decode(cR), decode(sR)]);
-
-    if (iData)  { items      = iData;  saveItems(); }
-    if (cfData) { config     = cfData; saveConfig(); document.getElementById('budgetInput').value = config.budget || ''; }
-    if (cData)  { categories = cData;  saveCategories(); }
-    if (sData)  { saleItems  = sData;  saveSaleItems(); }
-
+    const res = await fetch(SYNC_API);
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    if (data.items)      { items      = data.items;      saveItems(); }
+    if (data.config)     { config     = data.config;     saveConfig(); document.getElementById('budgetInput').value = config.budget || ''; }
+    if (data.categories) { categories = data.categories; saveCategories(); }
+    if (data.sales)      { saleItems  = data.sales;      saveSaleItems(); }
     renderCategoryChips(); renderRoomChips(); renderCategoryDropdown();
     renderItemsTable(); renderSaleItems(); updateSummary();
-    toast('נטען מ-GitHub ✓', 'success');
+    toast('נטען מהשרת ✓', 'success');
   } catch (err) {
     toast('שגיאה בטעינה: ' + err.message, 'error');
   }
@@ -1154,10 +1149,10 @@ async function loadFromGitHub() {
 
 function resetSyncPassword() {
   localStorage.removeItem('mct-sync-pwd');
-  toast('סיסמה נמחקה — לחץ "שמור ל-GitHub" להזנת סיסמה חדשה', 'info');
+  toast('סיסמה נמחקה — לחץ "שמור לשרת" להזנת סיסמה חדשה', 'info');
 }
 
-async function saveToGitHub() {
+async function saveToServer() {
   let pwd = localStorage.getItem('mct-sync-pwd');
   if (!pwd) {
     pwd = prompt('הכנס סיסמת סנכרון:');
@@ -1166,7 +1161,7 @@ async function saveToGitHub() {
     pwd = pwd.trim();
   }
 
-  toast('שומר ל-GitHub...', 'info');
+  toast('שומר לשרת...', 'info');
   try {
     const res = await fetch(SYNC_API, {
       method: 'POST',
@@ -1175,11 +1170,11 @@ async function saveToGitHub() {
     });
     if (res.status === 401) {
       localStorage.removeItem('mct-sync-pwd');
-      toast('סיסמה שגויה — נמחקה. לחץ שוב להזנת סיסמה חדשה', 'error');
+      toast('סיסמה שגויה — נמחקה. לחץ שוב', 'error');
       return;
     }
     if (!res.ok) throw new Error(await res.text());
-    toast('נשמר ב-GitHub ✓', 'success');
+    toast('נשמר בשרת ✓', 'success');
   } catch (err) {
     toast('שגיאה: ' + err.message, 'error');
   }

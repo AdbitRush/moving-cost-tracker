@@ -31,10 +31,10 @@ function readJson(file) {
     const raw = fs.readFileSync(path.join(DATA_DIR, file), 'utf-8');
     return JSON.parse(raw);
   } catch (e) {
-    // If file missing, return sensible default
-    if (file === 'items.json') return [];
+    if (file === 'items.json')      return [];
     if (file === 'categories.json') return [];
-    if (file === 'config.json') return { budget: 0, currency: 'ILS' };
+    if (file === 'sales.json')      return [];
+    if (file === 'config.json')     return { budget: 0, currency: 'ILS' };
     return null;
   }
 }
@@ -210,6 +210,35 @@ const server = http.createServer(async (req, res) => {
       }
       return notFound(res);
     }
+    // ROUTE: /api/sync  — bulk load / save all data with password
+    if (pathname === '/api/sync') {
+      if (req.method === 'GET') {
+        return jsonResponse(res, {
+          items:      readJson('items.json'),
+          config:     readJson('config.json'),
+          categories: readJson('categories.json'),
+          sales:      readJson('sales.json'),
+        });
+      }
+      if (req.method === 'POST') {
+        try {
+          const body = await parseBody(req);
+          const syncPwd = process.env.SYNC_PASSWORD;
+          if (syncPwd && body.password !== syncPwd) {
+            return jsonResponse(res, { error: 'סיסמה שגויה' }, 401);
+          }
+          if (body.items      !== undefined) writeJson('items.json',      body.items);
+          if (body.config     !== undefined) writeJson('config.json',     body.config);
+          if (body.categories !== undefined) writeJson('categories.json', body.categories);
+          if (body.sales      !== undefined) writeJson('sales.json',      body.sales);
+          return jsonResponse(res, { ok: true });
+        } catch (e) {
+          return jsonResponse(res, { error: 'Invalid JSON' }, 400);
+        }
+      }
+      return notFound(res);
+    }
+
     // Unknown API endpoint
     return notFound(res);
   }
