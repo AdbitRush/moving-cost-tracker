@@ -35,10 +35,95 @@ const CAT_OPTION_STYLES = [
 // ── Storage ───────────────────────────────────────────────
 function saveItems()      { localStorage.setItem('mct-items',      JSON.stringify(items)); }
 function saveCategories() { localStorage.setItem('mct-categories', JSON.stringify(categories)); }
-function saveConfig()     { localStorage.setItem('mct-config',     JSON.stringify(config)); }
+function saveConfig() {
+  // Save locally
+  localStorage.setItem('mct-config', JSON.stringify(config));
+  // Also persist to backend if available
+  fetch('/api/config', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ budget: config.budget, currency: config.currency })
+  }).catch(err => {
+    console.error('Failed to save config to server:', err);
+    // optional: show toast for failure
+    // toast('שמירת תקציב מרחוק נכשלה', 'error');
+  });
+}
 function saveSaleItems()  { localStorage.setItem('mct-sales',      JSON.stringify(saleItems)); }
 
 function loadStorage() {
+  // Attempt to load config from backend (if reachable)
+  fetch('/api/config')
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (data && typeof data.budget === 'number') {
+        config = data;
+        // Save to localStorage for offline fallback
+        saveConfig();
+        document.getElementById('budgetInput').value = config.budget || '';
+      }
+    })
+    .catch(_ => {
+      // ignore errors, will fallback to localStorage below
+    })
+    .finally(() => {
+      // Continue loading other data from localStorage
+      items      = JSON.parse(localStorage.getItem('mct-items')      || '[]');
+      categories = JSON.parse(localStorage.getItem('mct-categories') || '[]');
+      // config may already be set by fetch; if not, load from localStorage
+      if (!config || typeof config.budget !== 'number') {
+        config = JSON.parse(localStorage.getItem('mct-config') || '{"budget":0,"currency":"ILS"}');
+      }
+      saleItems  = JSON.parse(localStorage.getItem('mct-sales')      || '[]');
+
+      if (!categories.length) {
+        categories = [
+          { id:1,  name:'הובלה ולוגיסטיקה' },
+          { id:2,  name:'ריהוט' },
+          { id:3,  name:'מכשירי חשמל' },
+          { id:4,  name:'שיפוצים ובנייה' },
+          { id:5,  name:'אינסטלציה' },
+          { id:6,  name:'חשמל ותאורה' },
+          { id:7,  name:'ניקיון' },
+          { id:8,  name:'שירותים וחיבורים' },
+          { id:9,  name:'אחסון' },
+          { id:10, name:'ביטוח' },
+          { id:11, name:'עיצוב ודקורציה' },
+          { id:12, name:'שונות' },
+        ];
+        saveCategories();
+      }
+
+      if (!items.length) {
+        items = [
+          { id:1,  name:'מובילים (הובלה)',      price:0, notes:'', category_id:1,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:2,  name:'אריזות וחומרי אריזה',  price:0, notes:'', category_id:1,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:3,  name:'מקרר',                 price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:4,  name:'מדיח כלים',            price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:5,  name:'תנור ומיקרוגל',        price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:6,  name:'מכונת כביסה',          price:0, notes:'', category_id:3,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:7,  name:'מזגן',                 price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:8,  name:'מיטה וארגז שינה',      price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:9,  name:'ספה וסלון',            price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:10, name:'ארון בגדים',           price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:11, name:'שולחן אוכל וכיסאות',  price:0, notes:'', category_id:2,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:12, name:'צבע וטיח',             price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:13, name:'ריצוף',                price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:14, name:'שיפוץ מטבח',           price:0, notes:'', category_id:4,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:15, name:'שיפוץ אמבטיה',         price:0, notes:'', category_id:5,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:16, name:'חיבור גז',             price:0, notes:'', category_id:5,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:17, name:'חיבור חשמל ולוח',      price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:18, name:'תאורה',                price:0, notes:'', category_id:6,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:19, name:'שירות ניקיון',         price:0, notes:'', category_id:7,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:20, name:'הדברה',                price:0, notes:'', category_id:7,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:21, name:'חיבור אינטרנט',        price:0, notes:'', category_id:8,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:22, name:'העברת טלפון וגז ומים', price:0, notes:'', category_id:8,  selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:23, name:'ביטוח דירה',           price:0, notes:'', category_id:10, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+          { id:24, name:'הוצאות שונות',         price:0, notes:'', category_id:12, selected:false, status:'pending', model:'', contact_name:'', contact_phone:'', appointment:'', quotes:[] },
+        ];
+        saveItems();
+      }
+    });
   items      = JSON.parse(localStorage.getItem('mct-items')      || '[]');
   categories = JSON.parse(localStorage.getItem('mct-categories') || '[]');
   config     = JSON.parse(localStorage.getItem('mct-config')     || '{"budget":0,"currency":"ILS"}');
