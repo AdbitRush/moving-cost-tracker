@@ -1123,67 +1123,65 @@ function importJSON(event) {
   reader.readAsText(file);
 }
 
-// ── Push to GitHub ────────────────────────────────────────
-const GH_REPO  = 'AdbitRush/moving-cost-tracker';
-const GH_FILES = {
-  'moving_cost_tracker/data/items.json':  () => JSON.stringify(items, null, 2),
-  'moving_cost_tracker/data/config.json': () => JSON.stringify(config, null, 2),
-};
+// ── GitHub Sync (load = public API, save = Vercel function + password) ───────
+const GH_API_BASE = 'https://api.github.com/repos/AdbitRush/moving-cost-tracker/contents/moving_cost_tracker/data';
+const SYNC_API    = localStorage.getItem('mct-api-url') || '/api/sync';
 
-function resetGitHubToken() {
-  localStorage.removeItem('mct-gh-token');
-  toast('מפתח נמחק — לחץ "שמור ב-GitHub" להזנת מפתח חדש', 'info');
+async function loadFromGitHub() {
+  toast('טוען מ-GitHub...', 'info');
+  try {
+    const [iR, cfR, cR, sR] = await Promise.all([
+      fetch(GH_API_BASE + '/items.json',      { headers: { Accept: 'application/vnd.github+json' } }),
+      fetch(GH_API_BASE + '/config.json',     { headers: { Accept: 'application/vnd.github+json' } }),
+      fetch(GH_API_BASE + '/categories.json', { headers: { Accept: 'application/vnd.github+json' } }),
+      fetch(GH_API_BASE + '/sales.json',      { headers: { Accept: 'application/vnd.github+json' } }),
+    ]);
+    const decode = r => r.ok ? r.json().then(f => JSON.parse(atob(f.content.replace(/\n/g,'')))) : Promise.resolve(null);
+    const [iData, cfData, cData, sData] = await Promise.all([decode(iR), decode(cfR), decode(cR), decode(sR)]);
+
+    if (iData)  { items      = iData;  saveItems(); }
+    if (cfData) { config     = cfData; saveConfig(); document.getElementById('budgetInput').value = config.budget || ''; }
+    if (cData)  { categories = cData;  saveCategories(); }
+    if (sData)  { saleItems  = sData;  saveSaleItems(); }
+
+    renderCategoryChips(); renderRoomChips(); renderCategoryDropdown();
+    renderItemsTable(); renderSaleItems(); updateSummary();
+    toast('נטען מ-GitHub ✓', 'success');
+  } catch (err) {
+    toast('שגיאה בטעינה: ' + err.message, 'error');
+  }
 }
 
-async function pushToGitHub() {
-  let token = localStorage.getItem('mct-gh-token');
-  if (!token) {
-    token = prompt('הכנס GitHub Personal Access Token\n(נשמר רק בדפדפן שלך, לא נשלח לשום מקום חוץ מ-GitHub)');
-    if (!token) return;
-    localStorage.setItem('mct-gh-token', token.trim());
-    token = token.trim();
+function resetSyncPassword() {
+  localStorage.removeItem('mct-sync-pwd');
+  toast('סיסמה נמחקה — לחץ "שמור ל-GitHub" להזנת סיסמה חדשה', 'info');
+}
+
+async function saveToGitHub() {
+  let pwd = localStorage.getItem('mct-sync-pwd');
+  if (!pwd) {
+    pwd = prompt('הכנס סיסמת סנכרון:');
+    if (!pwd) return;
+    localStorage.setItem('mct-sync-pwd', pwd.trim());
+    pwd = pwd.trim();
   }
 
-  toast('שומר ב-GitHub...', 'info');
-
+  toast('שומר ל-GitHub...', 'info');
   try {
-    for (const [path, getContent] of Object.entries(GH_FILES)) {
-      const getRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
-      });
-      if (getRes.status === 401) {
-        localStorage.removeItem('mct-gh-token');
-        toast('מפתח שגוי — נמחק. לחץ שוב להזנת מפתח חדש', 'error');
-        return;
-      }
-      if (!getRes.ok && getRes.status !== 404) throw new Error(`GET ${path}: ${getRes.status}`);
-      const existing = getRes.ok ? await getRes.json() : null;
-
-      const content = btoa(unescape(encodeURIComponent(getContent())));
-      const body = {
-        message: `data: browser save ${new Date().toISOString().slice(0,16)}`,
-        content,
-        ...(existing ? { sha: existing.sha } : {})
-      };
-
-      const putRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      if (!putRes.ok) {
-        const err = await putRes.json();
-        if (putRes.status === 401) {
-          localStorage.removeItem('mct-gh-token');
-          toast('מפתח שגוי — נמחק. לחץ שוב להזנת מפתח חדש', 'error');
-          return;
-        }
-        throw new Error(err.message || putRes.status);
-      }
+    const res = await fetch(SYNC_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd, items, config, categories, sales: saleItems }),
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('mct-sync-pwd');
+      toast('סיסמה שגויה — נמחקה. לחץ שוב להזנת סיסמה חדשה', 'error');
+      return;
     }
+    if (!res.ok) throw new Error(await res.text());
     toast('נשמר ב-GitHub ✓', 'success');
   } catch (err) {
-    toast(`שגיאת GitHub: ${err.message}`, 'error');
+    toast('שגיאה: ' + err.message, 'error');
   }
 }
 
