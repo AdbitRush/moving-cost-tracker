@@ -1127,7 +1127,10 @@ function importJSON(event) {
 // When served from the Node server (port 3456), /api/sync is relative and just works.
 // From any other origin (GitHub Pages etc.) set mct-api-url in localStorage to
 // point at the server, e.g. http://YOUR-SERVER-IP:3456/api/sync
-const SYNC_API = (localStorage.getItem('mct-api-url') || '/api/sync');
+const SYNC_API = localStorage.getItem('mct-api-url') ||
+  (window.location.hostname.includes('github.io')
+    ? 'http://178.105.148.72:3456/api/sync'
+    : '/api/sync');
 
 async function loadFromServer() {
   toast('טוען מהשרת...', 'info');
