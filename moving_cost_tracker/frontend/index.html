@@ -44,6 +44,16 @@
       <button class="sidebar-link" id="sb-export">
         <span class="nav-icon">⬇</span> ייצוא CSV
       </button>
+      <button class="sidebar-link" onclick="exportJSON()">
+        <span class="nav-icon">💾</span> ייצוא JSON
+      </button>
+      <label class="sidebar-link" style="cursor:pointer">
+        <span class="nav-icon">📂</span> ייבוא JSON
+        <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(event)" />
+      </label>
+      <button class="sidebar-link" onclick="pushToGitHub()">
+        <span class="nav-icon">☁</span> שמור ב-GitHub
+      </button>
     </nav>
 
     <div class="sidebar-stats">

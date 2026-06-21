@@ -1062,6 +1062,101 @@ function addSaleItem() {
   toast('פריט נוסף ✓', 'success');
 }
 
+// ── Export / Import JSON ──────────────────────────────────
+function exportJSON() {
+  const data = {
+    items,
+    categories,
+    config,
+    saleItems,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `moving-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('גיבוי JSON הורד ✓', 'success');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.items)      { items      = data.items;      saveItems(); }
+      if (data.categories) { categories = data.categories; saveCategories(); }
+      if (data.config)     { config     = data.config;     saveConfig(); }
+      if (data.saleItems)  { saleItems  = data.saleItems;  saveSaleItems(); }
+      renderCategoryChips();
+      renderCategoryDropdown();
+      renderItemsTable();
+      renderSaleItems();
+      updateSummary();
+      document.getElementById('budgetInput').value = config.budget || '';
+      toast('נתונים יובאו בהצלחה ✓', 'success');
+    } catch {
+      toast('שגיאה: קובץ לא תקין', 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── Push to GitHub ────────────────────────────────────────
+const GH_REPO  = 'AdbitRush/moving-cost-tracker';
+const GH_FILES = {
+  'moving_cost_tracker/data/items.json':  () => JSON.stringify(items, null, 2),
+  'moving_cost_tracker/data/config.json': () => JSON.stringify(config, null, 2),
+};
+
+async function pushToGitHub() {
+  let token = localStorage.getItem('mct-gh-token');
+  if (!token) {
+    token = prompt('הכנס GitHub Personal Access Token (נשמר רק בדפדפן שלך):\n\nצור ב: github.com → Settings → Developer settings → Personal access tokens → Fine-grained\nהרשאות: Contents = Read & Write על repo זה');
+    if (!token) return;
+    localStorage.setItem('mct-gh-token', token.trim());
+    token = token.trim();
+  }
+
+  toast('שומר ב-GitHub...', 'info');
+
+  try {
+    for (const [path, getContent] of Object.entries(GH_FILES)) {
+      // get current SHA (required for update)
+      const getRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+      });
+      if (!getRes.ok && getRes.status !== 404) throw new Error(`GET ${path}: ${getRes.status}`);
+      const existing = getRes.ok ? await getRes.json() : null;
+
+      const content = btoa(unescape(encodeURIComponent(getContent())));
+      const body = {
+        message: `data: browser save ${new Date().toISOString().slice(0,16)}`,
+        content,
+        ...(existing ? { sha: existing.sha } : {})
+      };
+
+      const putRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!putRes.ok) {
+        const err = await putRes.json();
+        if (putRes.status === 401) { localStorage.removeItem('mct-gh-token'); }
+        throw new Error(err.message || putRes.status);
+      }
+    }
+    toast('נשמר ב-GitHub ✓', 'success');
+  } catch (err) {
+    toast(`שגיאת GitHub: ${err.message}`, 'error');
+  }
+}
+
 // ── Init ──────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   loadStorage();
