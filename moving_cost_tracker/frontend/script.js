@@ -249,6 +249,7 @@ function saveBudget() {
   saveConfig();
   updateSummary();
   toast('תקציב נשמר ✓', 'success');
+  if (localStorage.getItem('mct-sync-pwd')) saveToServer();
 }
 
 // ── Summary ───────────────────────────────────────────────
