@@ -1182,6 +1182,14 @@ async function saveToServer() {
 
 // ── Init ──────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  // Close button for sidebar (mobile view)
+  const closeBtn = document.getElementById('closeSidebar');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+    });
+  }
+
   loadStorage();
 
   document.getElementById('saveBudget').addEventListener('click', saveBudget);

@@ -52,6 +52,29 @@ body {
 /* ──────────────────────────────────────────────────────────
    SIDEBAR — fixed on the right (RTL)
    ────────────────────────────────────────────────────────── */
+
+/* Close button for sidebar */
+.sidebar-close {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
 .sidebar {
   width: var(--sidebar-w);
   background: var(--sidebar-bg);
