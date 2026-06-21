@@ -5,12 +5,26 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const HOST = '0.0.0.0';
 const PORT = 3456;
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR    = path.join(__dirname, '..', 'data');
 const FRONTEND_DIR = path.join(__dirname, '..', 'frontend');
+const REPO_DIR    = path.join(__dirname, '..', '..');
+
+function gitPull() {
+  try { execSync('git pull origin main', { cwd: REPO_DIR, stdio: 'ignore', timeout: 15000 }); } catch(e) {}
+}
+
+function gitPush(msg) {
+  try {
+    execSync('git add moving_cost_tracker/data/', { cwd: REPO_DIR, stdio: 'ignore' });
+    execSync(`git commit -m "sync: ${msg}"`, { cwd: REPO_DIR, stdio: 'ignore' });
+    execSync('git push origin main', { cwd: REPO_DIR, stdio: 'ignore', timeout: 30000 });
+  } catch(e) {}
+}
 
 function jsonResponse(res, data, status = 200) {
   const body = JSON.stringify(data);
@@ -213,6 +227,7 @@ const server = http.createServer(async (req, res) => {
     // ROUTE: /api/sync  — bulk load / save all data with password
     if (pathname === '/api/sync') {
       if (req.method === 'GET') {
+        gitPull();
         return jsonResponse(res, {
           items:      readJson('items.json'),
           config:     readJson('config.json'),
@@ -231,6 +246,7 @@ const server = http.createServer(async (req, res) => {
           if (body.config     !== undefined) writeJson('config.json',     body.config);
           if (body.categories !== undefined) writeJson('categories.json', body.categories);
           if (body.sales      !== undefined) writeJson('sales.json',      body.sales);
+          gitPush(new Date().toISOString().slice(0, 16));
           return jsonResponse(res, { ok: true });
         } catch (e) {
           return jsonResponse(res, { error: 'Invalid JSON' }, 400);
