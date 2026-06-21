@@ -1113,10 +1113,15 @@ const GH_FILES = {
   'moving_cost_tracker/data/config.json': () => JSON.stringify(config, null, 2),
 };
 
+function resetGitHubToken() {
+  localStorage.removeItem('mct-gh-token');
+  toast('מפתח נמחק — לחץ "שמור ב-GitHub" להזנת מפתח חדש', 'info');
+}
+
 async function pushToGitHub() {
   let token = localStorage.getItem('mct-gh-token');
   if (!token) {
-    token = prompt('הכנס GitHub Personal Access Token (נשמר רק בדפדפן שלך):\n\nצור ב: github.com → Settings → Developer settings → Personal access tokens → Fine-grained\nהרשאות: Contents = Read & Write על repo זה');
+    token = prompt('הכנס GitHub Personal Access Token\n(נשמר רק בדפדפן שלך, לא נשלח לשום מקום חוץ מ-GitHub)');
     if (!token) return;
     localStorage.setItem('mct-gh-token', token.trim());
     token = token.trim();
@@ -1126,10 +1131,14 @@ async function pushToGitHub() {
 
   try {
     for (const [path, getContent] of Object.entries(GH_FILES)) {
-      // get current SHA (required for update)
       const getRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
       });
+      if (getRes.status === 401) {
+        localStorage.removeItem('mct-gh-token');
+        toast('מפתח שגוי — נמחק. לחץ שוב להזנת מפתח חדש', 'error');
+        return;
+      }
       if (!getRes.ok && getRes.status !== 404) throw new Error(`GET ${path}: ${getRes.status}`);
       const existing = getRes.ok ? await getRes.json() : null;
 
@@ -1147,7 +1156,11 @@ async function pushToGitHub() {
       });
       if (!putRes.ok) {
         const err = await putRes.json();
-        if (putRes.status === 401) { localStorage.removeItem('mct-gh-token'); }
+        if (putRes.status === 401) {
+          localStorage.removeItem('mct-gh-token');
+          toast('מפתח שגוי — נמחק. לחץ שוב להזנת מפתח חדש', 'error');
+          return;
+        }
         throw new Error(err.message || putRes.status);
       }
     }
