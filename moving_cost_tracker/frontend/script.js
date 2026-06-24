@@ -139,6 +139,11 @@ function salesIncome() {
     .reduce((sum, s) => sum + (Number(s.soldPrice) || 0), 0);
 }
 
+function potentialSalesIncome() {
+  return saleItems.filter(s => s.status === 'forsale')
+    .reduce((sum, s) => sum + (Number(s.askPrice) || 0), 0);
+}
+
 // ── Tabs ──────────────────────────────────────────────────
 const TAB_TITLES = {
   dashboard: '📊 לוח בקרה',
@@ -234,6 +239,20 @@ function updateSummary() {
     document.getElementById('heroSalesAmount').textContent = '₪' + fmt(income);
   } else {
     salesRow.style.display = 'none';
+  }
+
+  const potential = potentialSalesIncome();
+  const projRow = document.getElementById('heroProjectedRow');
+  if (potential > 0) {
+    projRow.style.display = 'flex';
+    const projectedTotal = income + potential;
+    const projectedRemaining = (budget + projectedTotal) - allTotal;
+    document.getElementById('heroProjectedAmount').textContent = '₪' + fmt(projectedTotal);
+    const remEl = document.getElementById('heroProjectedRemaining');
+    remEl.textContent = '| יתרה: ' + (projectedRemaining < 0 ? '-' : '') + '₪' + fmt(Math.abs(projectedRemaining));
+    remEl.style.color = projectedRemaining < 0 ? '#fca5a5' : '#86efac';
+  } else {
+    projRow.style.display = 'none';
   }
 
   document.getElementById('sb-paid').textContent      = '₪' + fmt(paidTotal);

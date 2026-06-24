@@ -707,6 +707,14 @@ button:active { transform: scale(.97); }
 }
 .hero-sales-amount { font-weight: 800; color: #5eead4; font-size: .95rem; }
 
+.hero-projected-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed rgba(255,255,255,.15);
+}
+.hero-projected-amount { font-weight: 800; color: #a5f3fc; font-size: .95rem; }
+.hero-projected-remain { font-size: .8rem; font-weight: 600; }
+
 /* ── Sale action buttons ── */
 .sale-got-money-btn {
   display: block; width: calc(100% - 32px); margin: 0 16px 14px;
