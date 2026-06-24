@@ -1,1 +1,66 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "נינגה גלידה",
+    "askPrice": 550,
+    "soldPrice": 550,
+    "status": "sold",
+    "notes": "פייסבוק"
+  },
+  {
+    "id": 2,
+    "name": "שולחן מרפסת",
+    "askPrice": 800,
+    "soldPrice": 0,
+    "status": "forsale",
+    "notes": "פייסבוק"
+  },
+  {
+    "id": 3,
+    "name": "שולחן סלון",
+    "askPrice": 2500,
+    "soldPrice": 0,
+    "status": "forsale",
+    "notes": "פייסבוק - מישהו רוצה לקחת"
+  },
+  {
+    "id": 4,
+    "name": "מקרר",
+    "askPrice": 0,
+    "soldPrice": 0,
+    "status": "forsale",
+    "notes": ""
+  },
+  {
+    "id": 5,
+    "name": "מדיח",
+    "askPrice": 0,
+    "soldPrice": 0,
+    "status": "forsale",
+    "notes": ""
+  },
+  {
+    "id": 6,
+    "name": "גריל",
+    "askPrice": 550,
+    "soldPrice": 0,
+    "status": "forsale",
+    "notes": ""
+  },
+  {
+    "id": 7,
+    "name": "סירים",
+    "askPrice": 1490,
+    "soldPrice": 1490,
+    "status": "sold",
+    "notes": "החזרה"
+  },
+  {
+    "id": 8,
+    "name": "גינת הידרו",
+    "askPrice": 350,
+    "soldPrice": 0,
+    "status": "forsale",
+    "notes": "פייסבוק"
+  }
+]
