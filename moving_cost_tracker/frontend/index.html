@@ -40,6 +40,9 @@
         <span class="nav-icon">💵</span> מכירות
         <span class="nav-badge" id="sb-sales-count">0</span>
       </a>
+      <a class="sidebar-link" data-tab="charts" onclick="showTab('charts')">
+        <span class="nav-icon">📈</span> גרפים
+      </a>
 
       <div class="sidebar-section-label" style="margin-top:8px">כלים</div>
       <button class="sidebar-link" id="sb-export">
@@ -349,11 +352,41 @@
         </div>
       </div><!-- /tab-sales -->
 
+      <!-- ══════════════════════════════════════════════
+           TAB: CHARTS
+           ══════════════════════════════════════════════ -->
+      <div class="tab-page" id="tab-charts" style="display:none">
+        <div class="charts-grid">
+
+          <div class="panel chart-panel">
+            <div class="panel-header"><h2>🏷 הוצאות לפי קטגוריה</h2></div>
+            <div class="panel-body chart-body"><canvas id="chartCats"></canvas></div>
+          </div>
+
+          <div class="panel chart-panel">
+            <div class="panel-header"><h2>📋 סטטוס פריטים</h2></div>
+            <div class="panel-body chart-body"><canvas id="chartStatus"></canvas></div>
+          </div>
+
+          <div class="panel chart-panel chart-wide">
+            <div class="panel-header"><h2>💰 תקציב vs הוצאות</h2></div>
+            <div class="panel-body chart-body chart-body-bar"><canvas id="chartBudget"></canvas></div>
+          </div>
+
+          <div class="panel chart-panel">
+            <div class="panel-header"><h2>💵 מכירות</h2></div>
+            <div class="panel-body chart-body"><canvas id="chartSales"></canvas></div>
+          </div>
+
+        </div>
+      </div><!-- /tab-charts -->
+
     </div><!-- /main -->
   </div><!-- /app-content -->
 </div><!-- /app-layout -->
 
 <div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

@@ -151,6 +151,7 @@ const TAB_TITLES = {
   items:     '📋 פריטים ועלויות',
   cats:      '🏷 קטגוריות',
   sales:     '💵 פריטים למכירה',
+  charts:    '📈 גרפים',
 };
 
 function showTab(name) {
@@ -166,6 +167,7 @@ function showTab(name) {
   if (name === 'calendar') renderCalendar();
   if (name === 'cats') { renderCategoryChips(); renderRoomChips(); renderCategoryDropdown(); }
   if (name === 'sales') renderSaleItems();
+  if (name === 'charts') renderCharts();
 }
 
 // ── Sidebar ───────────────────────────────────────────────
@@ -1159,6 +1161,117 @@ async function saveToServer() {
     toast('נשמר בשרת ✓', 'success');
   } catch (err) {
     toast('שגיאה: ' + err.message, 'error');
+  }
+}
+
+// ── Charts ────────────────────────────────────────────────
+const _charts = {};
+const CHART_COLORS = ['#818cf8','#fbbf24','#34d399','#f87171','#38bdf8','#c084fc','#fb923c','#4ade80','#a78bfa','#6ee7b7','#fde68a','#fca5a5','#67e8f9','#fcd34d'];
+
+function _mkChart(id, cfg) {
+  if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
+  const el = document.getElementById(id);
+  if (!el) return;
+  _charts[id] = new Chart(el, cfg);
+}
+
+function renderCharts() {
+  // 1. הוצאות לפי קטגוריה (donut)
+  const catTotals = categories.map((cat, i) => ({
+    name: cat.name,
+    total: items.filter(it => it.category_id === cat.id && it.status !== 'cancelled')
+                .reduce((s, it) => s + (Number(it.price) || 0), 0),
+    color: CHART_COLORS[i % CHART_COLORS.length],
+  })).filter(c => c.total > 0).sort((a, b) => b.total - a.total);
+
+  _mkChart('chartCats', {
+    type: 'doughnut',
+    data: {
+      labels: catTotals.map(c => c.name),
+      datasets: [{ data: catTotals.map(c => c.total), backgroundColor: catTotals.map(c => c.color), borderWidth: 2, borderColor: '#fff' }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 }, padding: 10 } },
+        tooltip: { callbacks: { label: ctx => ' ₪' + fmt(ctx.raw) } },
+      },
+    },
+  });
+
+  // 2. סטטוס פריטים (donut)
+  const paid      = items.filter(i => i.status === 'paid').length;
+  const pending   = items.filter(i => (i.status || 'pending') === 'pending').length;
+  const cancelled = items.filter(i => i.status === 'cancelled').length;
+  _mkChart('chartStatus', {
+    type: 'doughnut',
+    data: {
+      labels: ['שולם', 'ממתין', 'בוטל'],
+      datasets: [{ data: [paid, pending, cancelled], backgroundColor: ['#14b8a6','#f59e0b','#9ca3af'], borderWidth: 2, borderColor: '#fff' }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 }, padding: 10 } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + ' פריטים' } },
+      },
+    },
+  });
+
+  // 3. תקציב vs הוצאות (bar אופקי)
+  const paidAmt    = items.filter(i => i.status === 'paid').reduce((s, i) => s + (Number(i.price) || 0), 0);
+  const pendAmt    = items.filter(i => (i.status || 'pending') === 'pending').reduce((s, i) => s + (Number(i.price) || 0), 0);
+  const budget     = Number(config.budget) || 0;
+  const salesAmt   = salesIncome();
+  const effective  = budget + salesAmt;
+  const remaining  = effective - paidAmt - pendAmt;
+  _mkChart('chartBudget', {
+    type: 'bar',
+    data: {
+      labels: ['שולם', 'ממתין לתשלום', 'יתרת תקציב', 'תקציב כולל'],
+      datasets: [{
+        data: [paidAmt, pendAmt, Math.max(0, remaining), effective],
+        backgroundColor: ['#14b8a6','#f59e0b', remaining < 0 ? '#f87171' : '#4ade80','#818cf8'],
+        borderRadius: 8, borderSkipped: false,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ₪' + fmt(ctx.raw) } },
+      },
+      scales: {
+        x: { ticks: { callback: v => '₪' + fmt(v), font: { family: 'Inter', size: 10 } } },
+        y: { ticks: { font: { family: 'Inter', size: 11 } } },
+      },
+    },
+  });
+
+  // 4. מכירות (donut)
+  const forSaleAmt = saleItems.filter(s => s.status === 'forsale').reduce((s, i) => s + (Number(i.askPrice) || 0), 0);
+  const soldAmt    = saleItems.filter(s => s.status === 'sold').reduce((s, i) => s + (Number(i.soldPrice) || 0), 0);
+  const removedCnt = saleItems.filter(s => s.status === 'removed').length;
+  if (forSaleAmt + soldAmt + removedCnt > 0) {
+    _mkChart('chartSales', {
+      type: 'doughnut',
+      data: {
+        labels: ['מוצע למכירה', 'נמכר בפועל', 'הוסר'],
+        datasets: [{ data: [forSaleAmt, soldAmt, removedCnt], backgroundColor: ['#f59e0b','#14b8a6','#9ca3af'], borderWidth: 2, borderColor: '#fff' }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 }, padding: 10 } },
+          tooltip: { callbacks: { label: ctx => ctx.label === 'הוסר' ? ' ' + ctx.raw + ' פריטים' : ' ₪' + fmt(ctx.raw) } },
+        },
+      },
+    });
+  } else {
+    if (_charts['chartSales']) { _charts['chartSales'].destroy(); delete _charts['chartSales']; }
+    const el = document.getElementById('chartSales');
+    if (el) el.parentElement.innerHTML = '<span style="font-size:.85rem;color:var(--text-muted)">אין נתוני מכירות עדיין</span>';
   }
 }
 

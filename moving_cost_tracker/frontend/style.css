@@ -576,6 +576,23 @@ button:active { transform: scale(.97); }
 @keyframes toast-in { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* ──────────────────────────────────────────────────────────
+   CHARTS
+   ────────────────────────────────────────────────────────── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.chart-wide { grid-column: 1 / -1; }
+.chart-body {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 260px; padding: 10px;
+}
+.chart-body canvas { max-height: 260px; }
+.chart-body-bar { min-height: 180px; }
+.chart-body-bar canvas { max-height: 180px; }
+
+/* ──────────────────────────────────────────────────────────
    MOBILE
    ────────────────────────────────────────────────────────── */
 @media(max-width: 768px) {
@@ -585,6 +602,8 @@ button:active { transform: scale(.97); }
   .hamburger { display: block; }
   .main { padding: 20px 14px 48px; }
   .kpi-row { grid-template-columns: repeat(2,1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+  .chart-wide { grid-column: 1; }
 }
 
 /* ── Scrollbar ── */
