@@ -968,7 +968,7 @@ function renderSaleItems() {
       ? '<button class="sale-got-money-btn" onclick="cycleSaleStatus(' + item.id + ')">✅ קיבלתי את הכסף!</button>'
       : '';
     const undoBtn = status === 'sold'
-      ? '<button class="sale-undo-btn" onclick="cycleSaleStatus(' + item.id + ')">↩ בטל</button>'
+      ? '<button class="sale-undo-btn" onclick="undoSale(' + item.id + ')">↩ לא נמכר בסוף</button>'
       : '';
 
     const card = document.createElement('div');
@@ -990,7 +990,9 @@ function renderSaleItems() {
       '</div>' +
       soldBtn +
       '<div class="item-card-footer">' +
-        '<span class="status-badge status-' + status + '">' + SALE_STATUS_LABEL[status] + '</span>' +
+        '<span class="status-badge status-' + status + '"' +
+          (status === 'sold' ? ' onclick="undoSale(' + item.id + ')" title="לחץ לביטול מכירה"' : '') + '>' +
+          SALE_STATUS_LABEL[status] + '</span>' +
         undoBtn +
         notesHtml +
       '</div>';
@@ -1011,13 +1013,22 @@ function cycleSaleStatus(id) {
   if (!item) return;
   const cur = item.status || 'forsale';
   item.status = SALE_STATUS_CYCLE[(SALE_STATUS_CYCLE.indexOf(cur) + 1) % SALE_STATUS_CYCLE.length];
-  // Pre-fill soldPrice with askPrice so income shows up immediately
   if (item.status === 'sold' && !item.soldPrice) {
     item.soldPrice = item.askPrice || 0;
   }
   saveSaleItems();
   renderSaleItems();
   updateSummary();
+}
+
+function undoSale(id) {
+  const item = saleItems.find(s => s.id === id);
+  if (!item) return;
+  item.status = 'forsale';
+  saveSaleItems();
+  renderSaleItems();
+  updateSummary();
+  toast('מכירה בוטלה ↩', 'info');
 }
 
 function deleteSaleItem(id) {
