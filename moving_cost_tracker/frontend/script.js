@@ -204,7 +204,7 @@ function saveBudget() {
   saveConfig();
   updateSummary();
   toast('תקציב נשמר ✓', 'success');
-  if (localStorage.getItem('mct-sync-pwd')) saveToServer();
+  if (localStorage.getItem('mct-gh-token')) saveToServer();   // auto-push only if already connected
 }
 
 // ── Summary ───────────────────────────────────────────────
@@ -1104,51 +1104,88 @@ function importJSON(event) {
   reader.readAsText(file);
 }
 
-// ── Server Sync — load and save via the backend at /api/sync ─────────────────
-// When served from the Node server (port 3456), /api/sync is relative and just works.
-// From any other origin (GitHub Pages etc.) set mct-api-url in localStorage to
-// point at the server, e.g. http://YOUR-SERVER-IP:3456/api/sync
-const SYNC_API = localStorage.getItem('mct-api-url') ||
-  (window.location.hostname.includes('github.io')
-    ? 'http://178.105.148.72:3456/api/sync'
-    : '/api/sync');
+// ── Cloud Sync — directly with the GitHub repo (no server, no password) ──────
+// READ ("load") is public — needs nothing. WRITE ("save") uses a GitHub token
+// pasted once, stored ONLY in this browser (localStorage 'mct-gh-token'),
+// never in the code. This removes the old :3456 server entirely.
+const GH_REPO   = 'AdbitRush/moving-cost-tracker';
+const GH_BRANCH = 'main';
+const GH_DATA   = 'moving_cost_tracker/data';
+const GH_FILES  = { items: 'items.json', config: 'config.json', categories: 'categories.json', sales: 'sales.json' };
+const GH_API    = `https://api.github.com/repos/${GH_REPO}/contents`;
+
+function _b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
+function _b64dec(b64){ return decodeURIComponent(escape(atob((b64 || '').replace(/\n/g, '')))); }
 
 async function loadFromServer() {
-  toast('טוען מהשרת...', 'info');
+  toast('טוען מהענן...', 'info');
   try {
-    const res = await fetch(SYNC_API);
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    if (data.items)      { items      = data.items;      saveItems(); }
-    if (data.config)     { config     = data.config;     saveConfig(); document.getElementById('budgetInput').value = config.budget || ''; }
-    if (data.categories) { categories = data.categories; saveCategories(); }
-    if (data.sales)      { saleItems  = data.sales;      saveSaleItems(); }
+    const out = {};
+    for (const [key, file] of Object.entries(GH_FILES)) {
+      const r = await fetch(`${GH_API}/${GH_DATA}/${file}?ref=${GH_BRANCH}&t=${Date.now()}`,
+                            { headers: { Accept: 'application/vnd.github+json' } });
+      if (r.status === 404) continue;                 // file not created yet
+      if (!r.ok) throw new Error('GitHub ' + r.status);
+      out[key] = JSON.parse(_b64dec((await r.json()).content));
+    }
+    if (out.items)      { items      = out.items;      saveItems(); }
+    if (out.config)     { config     = out.config;     saveConfig(); document.getElementById('budgetInput').value = config.budget || ''; }
+    if (out.categories) { categories = out.categories; saveCategories(); }
+    if (out.sales)      { saleItems  = out.sales;      saveSaleItems(); }
     renderCategoryChips(); renderRoomChips(); renderCategoryDropdown();
     renderItemsTable(); renderSaleItems(); updateSummary();
-    toast('נטען מהשרת ✓', 'success');
+    toast('נטען מהענן ✓', 'success');
   } catch (err) {
     toast('שגיאה בטעינה: ' + err.message, 'error');
   }
 }
 
-function resetSyncPassword() {
-  // Sync no longer uses a password — clear any leftover value from older versions.
+function _ghToken() {
+  let t = localStorage.getItem('mct-gh-token') || '';
+  if (!t) {
+    t = prompt('שמירה לענן — הדבק טוקן GitHub (פעם אחת בלבד).\n\nליצירה: github.com/settings/tokens?type=beta → Generate → הרשאת "Contents: Read and write" על המאגר moving-cost-tracker.');
+    if (t) { t = t.trim(); localStorage.setItem('mct-gh-token', t); }
+  }
+  return t;
+}
+function resetSyncPassword() {   // button keeps its handler name; now clears the token
+  localStorage.removeItem('mct-gh-token');
   localStorage.removeItem('mct-sync-pwd');
-  toast('הסנכרון פתוח — אין צורך בסיסמה', 'info');
+  toast('הטוקן נמחק — בשמירה הבאה תתבקש טוקן חדש', 'info');
+}
+
+async function _ghPut(file, dataObj, token) {
+  const url = `${GH_API}/${GH_DATA}/${file}`;
+  const hdr = { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' };
+  let sha;
+  const g = await fetch(`${url}?ref=${GH_BRANCH}&t=${Date.now()}`, { headers: hdr });
+  if (g.status === 401) throw new Error('401');
+  if (g.ok) sha = (await g.json()).sha;
+  const body = { message: `sync: ${new Date().toISOString().slice(0, 16)}`,
+                 content: _b64enc(JSON.stringify(dataObj, null, 2)), branch: GH_BRANCH };
+  if (sha) body.sha = sha;
+  const p = await fetch(url, { method: 'PUT', headers: { ...hdr, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (p.status === 401) throw new Error('401');
+  if (!p.ok) throw new Error(await p.text());
 }
 
 async function saveToServer() {
-  toast('שומר לשרת...', 'info');
+  const token = _ghToken();
+  if (!token) return;
+  toast('שומר לענן...', 'info');
   try {
-    const res = await fetch(SYNC_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, config, categories, sales: saleItems }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    toast('נשמר בשרת ✓', 'success');
+    await _ghPut(GH_FILES.items,      items,     token);
+    await _ghPut(GH_FILES.config,     config,    token);
+    await _ghPut(GH_FILES.categories, categories, token);
+    await _ghPut(GH_FILES.sales,      saleItems, token);
+    toast('נשמר בענן ✓', 'success');
   } catch (err) {
-    toast('שגיאה: ' + err.message, 'error');
+    if (String(err.message).includes('401') || String(err.message).includes('Bad credentials')) {
+      localStorage.removeItem('mct-gh-token');
+      toast('טוקן שגוי — נמחק. לחץ שוב והדבק טוקן תקין', 'error');
+    } else {
+      toast('שגיאה בשמירה: ' + err.message, 'error');
+    }
   }
 }
 

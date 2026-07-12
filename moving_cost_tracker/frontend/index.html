@@ -56,10 +56,13 @@
         <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(event)" />
       </label>
       <button class="sidebar-link" onclick="loadFromServer()">
-        <span class="nav-icon">📥</span> טען מהשרת
+        <span class="nav-icon">📥</span> טען מהענן
       </button>
       <button class="sidebar-link" onclick="saveToServer()">
-        <span class="nav-icon">☁</span> שמור לשרת
+        <span class="nav-icon">☁</span> שמור לענן
+      </button>
+      <button class="sidebar-link" onclick="resetSyncPassword()" style="font-size:.75rem;opacity:.7">
+        <span class="nav-icon">🔑</span> החלף טוקן
       </button>
     </nav>
 
