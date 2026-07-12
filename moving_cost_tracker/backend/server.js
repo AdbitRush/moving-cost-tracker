@@ -238,10 +238,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST') {
         try {
           const body = await parseBody(req);
-          const syncPwd = process.env.SYNC_PASSWORD;
-          if (syncPwd && body.password !== syncPwd) {
-            return jsonResponse(res, { error: 'סיסמה שגויה' }, 401);
-          }
+          // No sync password — save-to-server is open (per owner's request).
           if (body.items      !== undefined) writeJson('items.json',      body.items);
           if (body.config     !== undefined) writeJson('config.json',     body.config);
           if (body.categories !== undefined) writeJson('categories.json', body.categories);
