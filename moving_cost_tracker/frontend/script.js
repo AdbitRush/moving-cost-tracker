@@ -1132,31 +1132,19 @@ async function loadFromServer() {
 }
 
 function resetSyncPassword() {
+  // Sync no longer uses a password — clear any leftover value from older versions.
   localStorage.removeItem('mct-sync-pwd');
-  toast('סיסמה נמחקה — לחץ "שמור לשרת" להזנת סיסמה חדשה', 'info');
+  toast('הסנכרון פתוח — אין צורך בסיסמה', 'info');
 }
 
 async function saveToServer() {
-  let pwd = localStorage.getItem('mct-sync-pwd');
-  if (!pwd) {
-    pwd = prompt('הכנס סיסמת סנכרון:');
-    if (!pwd) return;
-    localStorage.setItem('mct-sync-pwd', pwd.trim());
-    pwd = pwd.trim();
-  }
-
   toast('שומר לשרת...', 'info');
   try {
     const res = await fetch(SYNC_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pwd, items, config, categories, sales: saleItems }),
+      body: JSON.stringify({ items, config, categories, sales: saleItems }),
     });
-    if (res.status === 401) {
-      localStorage.removeItem('mct-sync-pwd');
-      toast('סיסמה שגויה — נמחקה. לחץ שוב', 'error');
-      return;
-    }
     if (!res.ok) throw new Error(await res.text());
     toast('נשמר בשרת ✓', 'success');
   } catch (err) {

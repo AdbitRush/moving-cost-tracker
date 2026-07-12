@@ -15,9 +15,7 @@ export default async function handler(req, res) {
 
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
-  if (!body.password || body.password !== process.env.SYNC_PASSWORD) {
-    return res.status(401).json({ error: 'סיסמה שגויה' });
-  }
+  // No sync password — save-to-server is open (per owner's request).
 
   const token = process.env.GH_TOKEN;
   if (!token) return res.status(500).json({ error: 'GH_TOKEN not configured' });
