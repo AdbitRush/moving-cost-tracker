@@ -291,7 +291,7 @@ function renderUpcoming() {
     const days = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
     const dateStr = days[d.getDay()] + ' ' +
       d.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit' }) + ' ' +
-      d.toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' });
+      d.toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' }) + apptEndStr(it);
     const diffH = Math.round((d - now) / 3600000);
     const urgency = diffH < 24 ? 'upcoming-today' : diffH < 72 ? 'upcoming-near' : '';
     return '<div class="upcoming-row ' + urgency + '" onclick="expandItem(' + it.id + ')">' +
@@ -588,7 +588,7 @@ function renderItemsTable() {
       : '';
 
     const apptBadge = item.appointment
-      ? '<div class="appt-badge' + (isUpcoming(item.appointment) ? ' appt-soon' : '') + '">📅 ' + fmtAppt(item.appointment) + '</div>'
+      ? '<div class="appt-badge' + (isUpcoming(item.appointment) ? ' appt-soon' : '') + '">📅 ' + fmtAppt(item.appointment) + apptEndStr(item) + '</div>'
       : '';
 
     const phoneDisplay = item.contact_phone
@@ -613,9 +613,12 @@ function renderItemsTable() {
           '<div class="icard-span2"><label>📞 טלפון ספק</label>' +
             '<input type="tel" class="icard-phone-input" value="' + esc(item.contact_phone || '') + '"' +
             ' onblur="patch(' + item.id + ',\'contact_phone\',this.value)" placeholder="054-0000000" /></div>' +
-          '<div><label>📅 תאריך ושעת הגעה</label>' +
+          '<div><label>📅 תאריך ושעת התחלה</label>' +
             '<input type="datetime-local" value="' + esc(item.appointment || '') + '"' +
             ' onchange="patch(' + item.id + ',\'appointment\',this.value);renderItemsTable()" /></div>' +
+          '<div><label>🕒 שעת סיום</label>' +
+            '<input type="time" value="' + esc(item.appointment_end || '') + '"' +
+            ' onchange="patch(' + item.id + ',\'appointment_end\',this.value);renderItemsTable()" /></div>' +
           '<div><label>הערות</label>' +
             '<input type="text" value="' + esc(item.notes || '') + '"' +
             ' onblur="patch(' + item.id + ',\'notes\',this.value)" placeholder="הערות חופשיות..." /></div>' +
@@ -713,6 +716,12 @@ function isUpcoming(dt) {
   if (!dt) return false;
   const diff = new Date(dt) - new Date();
   return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
+}
+
+// End of an appointment window, e.g. " – 17:30" (empty if no finish time set)
+function apptEndStr(item) {
+  const e = item && item.appointment_end;
+  return e ? ' – ' + e : '';
 }
 
 function patch(id, key, value) {
@@ -835,7 +844,7 @@ function exportCsv() {
     return [
       i.id, i.name, i.price, STATUS_LABEL[i.status||'pending'],
       cat ? cat.name : '', i.room || '', i.model||'', i.contact_name||'', i.contact_phone||'', i.notes||'',
-      i.appointment ? fmtAppt(i.appointment) : ''
+      i.appointment ? fmtAppt(i.appointment) + apptEndStr(i) : ''
     ].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',');
   });
   const blob = new Blob(['﻿' + [headers.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -883,9 +892,10 @@ function renderCalendar() {
 
     const events = dayItems.map(it => {
       const time = new Date(it.appointment).toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' });
+      const endT = it.appointment_end ? '–' + it.appointment_end : '';
       const soon = isUpcoming(it.appointment);
       return '<div class="cal-event' + (soon ? ' cal-event-soon' : '') + '" onclick="expandItem(' + it.id + ')">' +
-        '<span class="cal-event-time">' + time + '</span>' +
+        '<span class="cal-event-time">' + time + endT + '</span>' +
         '<span class="cal-event-name">' + esc(it.name) + '</span>' +
         '<span class="cal-event-badge status-' + (it.status||'pending') + '">' + STATUS_LABEL[it.status||'pending'] + '</span>' +
         '</div>';
