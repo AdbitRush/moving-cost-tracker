@@ -148,6 +148,7 @@ function potentialSalesIncome() {
 const TAB_TITLES = {
   dashboard: '📊 לוח בקרה',
   calendar:  '📅 לוח זמנים',
+  rooms:     '🚪 תכנון חדרים',
   items:     '📋 פריטים ועלויות',
   cats:      '🏷 קטגוריות',
   sales:     '💵 פריטים למכירה',
@@ -165,6 +166,7 @@ function showTab(name) {
   if (title) title.textContent = TAB_TITLES[name] || '';
   document.getElementById('sidebar').classList.remove('open');
   if (name === 'calendar') renderCalendar();
+  if (name === 'rooms' && typeof Rooms !== 'undefined') Rooms.load();
   if (name === 'cats') { renderCategoryChips(); renderRoomChips(); renderCategoryDropdown(); }
   if (name === 'sales') renderSaleItems();
   if (name === 'charts') renderCharts();

@@ -8,7 +8,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const HOST = '0.0.0.0';
-const PORT = 3456;
+const PORT = Number(process.env.PORT) || 3456;
 
 const DATA_DIR    = path.join(__dirname, '..', 'data');
 const FRONTEND_DIR = path.join(__dirname, '..', 'frontend');
@@ -49,6 +49,12 @@ function readJson(file) {
     if (file === 'categories.json') return [];
     if (file === 'sales.json')      return [];
     if (file === 'config.json')     return { budget: 0, currency: 'ILS' };
+    if (file === 'rooms.json')      return { rooms: [
+      { id: 1, name: 'סלון',      icon: '🛋️', owner: '' },
+      { id: 2, name: 'מטבח',      icon: '🍳', owner: '' },
+      { id: 3, name: 'חדר שינה',  icon: '🛏️', owner: '' },
+      { id: 4, name: 'אמבטיה',    icon: '🛁', owner: '' },
+    ], items: [] };
     return null;
   }
 }
@@ -200,6 +206,90 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'DELETE') {
         cats.splice(idx, 1);
         writeJson('categories.json', cats);
+        return jsonResponse(res, { success: true });
+      }
+      return notFound(res);
+    }
+    // ROUTE: /api/rooms — room planner (rooms + per-room wishlist items)
+    if (pathname === '/api/rooms') {
+      if (req.method === 'GET') return jsonResponse(res, readJson('rooms.json'));
+      if (req.method === 'POST') {
+        try {
+          const body = await parseBody(req);
+          if (!body.name || !String(body.name).trim()) return jsonResponse(res, { error: 'name required' }, 400);
+          const data = readJson('rooms.json');
+          const id = data.rooms.length ? Math.max(...data.rooms.map(r => r.id)) + 1 : 1;
+          const room = { id, name: String(body.name).trim(), icon: body.icon || '🚪', owner: body.owner || '' };
+          data.rooms.push(room);
+          writeJson('rooms.json', data);
+          return jsonResponse(res, room, 201);
+        } catch (e) { return jsonResponse(res, { error: 'Invalid JSON' }, 400); }
+      }
+      return notFound(res);
+    }
+    const roomIdM = pathname.match(/^\/api\/rooms\/(\d+)$/);
+    if (roomIdM) {
+      const id = Number(roomIdM[1]);
+      const data = readJson('rooms.json');
+      const idx = data.rooms.findIndex(r => r.id === id);
+      if (idx === -1) return notFound(res);
+      if (req.method === 'PUT') {
+        try {
+          const body = await parseBody(req);
+          if (body.name !== undefined)  data.rooms[idx].name  = String(body.name).trim();
+          if (body.icon !== undefined)  data.rooms[idx].icon  = body.icon;
+          if (body.owner !== undefined) data.rooms[idx].owner = body.owner;
+          writeJson('rooms.json', data);
+          return jsonResponse(res, data.rooms[idx]);
+        } catch (e) { return jsonResponse(res, { error: 'Invalid JSON' }, 400); }
+      }
+      if (req.method === 'DELETE') {
+        data.rooms.splice(idx, 1);
+        data.items = data.items.filter(i => i.roomId !== id);  // cascade
+        writeJson('rooms.json', data);
+        return jsonResponse(res, { success: true });
+      }
+      return notFound(res);
+    }
+    // ROUTE: /api/room-items
+    if (pathname === '/api/room-items') {
+      if (req.method === 'POST') {
+        try {
+          const body = await parseBody(req);
+          if (!body.text || !String(body.text).trim()) return jsonResponse(res, { error: 'text required' }, 400);
+          const data = readJson('rooms.json');
+          if (!data.rooms.some(r => r.id === Number(body.roomId))) return jsonResponse(res, { error: 'room not found' }, 400);
+          const id = data.items.length ? Math.max(...data.items.map(i => i.id)) + 1 : 1;
+          const item = { id, roomId: Number(body.roomId), text: String(body.text).trim(),
+                         addedBy: body.addedBy || '', priority: body.priority || 'normal',
+                         done: false, createdAt: new Date().toISOString() };
+          data.items.push(item);
+          writeJson('rooms.json', data);
+          return jsonResponse(res, item, 201);
+        } catch (e) { return jsonResponse(res, { error: 'Invalid JSON' }, 400); }
+      }
+      return notFound(res);
+    }
+    const ritemM = pathname.match(/^\/api\/room-items\/(\d+)$/);
+    if (ritemM) {
+      const id = Number(ritemM[1]);
+      const data = readJson('rooms.json');
+      const idx = data.items.findIndex(i => i.id === id);
+      if (idx === -1) return notFound(res);
+      if (req.method === 'PUT') {
+        try {
+          const body = await parseBody(req);
+          if (body.done !== undefined)     data.items[idx].done = !!body.done;
+          if (body.text !== undefined)     data.items[idx].text = String(body.text).trim();
+          if (body.priority !== undefined) data.items[idx].priority = body.priority;
+          if (body.addedBy !== undefined)  data.items[idx].addedBy = body.addedBy;
+          writeJson('rooms.json', data);
+          return jsonResponse(res, data.items[idx]);
+        } catch (e) { return jsonResponse(res, { error: 'Invalid JSON' }, 400); }
+      }
+      if (req.method === 'DELETE') {
+        data.items.splice(idx, 1);
+        writeJson('rooms.json', data);
         return jsonResponse(res, { success: true });
       }
       return notFound(res);

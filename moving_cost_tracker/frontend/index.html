@@ -28,6 +28,10 @@
         <span class="nav-icon">📅</span> לוח זמנים
         <span class="nav-badge" id="sb-appt-count">0</span>
       </a>
+      <a class="sidebar-link" data-tab="rooms" onclick="showTab('rooms')">
+        <span class="nav-icon">🚪</span> תכנון חדרים
+        <span class="nav-badge" id="sb-rooms-count">0</span>
+      </a>
       <a class="sidebar-link" data-tab="items" onclick="showTab('items')">
         <span class="nav-icon">📋</span> פריטים
         <span class="nav-badge" id="sb-items-count">0</span>
@@ -305,6 +309,13 @@
       </div><!-- /tab-cats -->
 
       <!-- ══════════════════════════════════════════════
+           TAB: ROOMS — per-room planning + wishlists
+           ══════════════════════════════════════════════ -->
+      <div class="tab-page" id="tab-rooms" style="display:none">
+        <div id="roomsRoot"></div>
+      </div><!-- /tab-rooms -->
+
+      <!-- ══════════════════════════════════════════════
            TAB: SALES
            ══════════════════════════════════════════════ -->
       <div class="tab-page" id="tab-sales" style="display:none">
@@ -388,5 +399,6 @@
 <div id="toast-container"></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="script.js"></script>
+<script src="rooms.js"></script>
 </body>
 </html>
