@@ -943,3 +943,9 @@ body::before{content:'';position:fixed;inset:-20%;z-index:0;pointer-events:none;
 .sidebar{background:#0c1120!important;border-right:1px solid rgba(255,194,60,.12);}
 .topbar{background:linear-gradient(135deg,#141b2e,#1d1440)!important;border-bottom:1px solid rgba(255,194,60,.22)!important;}
 .logo-title,.sidebar-active-text{color:#FFC23C!important;}
+
+/* ── LTR (English) — flip the fixed sidebar to the left ── */
+html[dir="ltr"] .sidebar{ right:auto; left:0; box-shadow:4px 0 24px rgba(0,0,0,.25); }
+html[dir="ltr"] .app-content{ margin-right:0; margin-left:var(--sidebar-w); }
+@media(max-width:768px){ html[dir="ltr"] .app-content{ margin-left:0; } }
+html[dir="ltr"] .sidebar-close{ left:auto; right:10px; }

@@ -164,7 +164,7 @@ function showTab(name) {
   const link = document.querySelector('.sidebar-link[data-tab="' + name + '"]');
   if (link) link.classList.add('active');
   const title = document.getElementById('topbarTitle');
-  if (title) title.textContent = TAB_TITLES[name] || '';
+  if (title) title.textContent = (typeof t === 'function' ? t('t_' + name) : (TAB_TITLES[name] || ''));
   document.getElementById('sidebar').classList.remove('open');
   if (name === 'calendar') renderCalendar();
   if (name === 'rooms' && typeof Rooms !== 'undefined') Rooms.load();
@@ -207,7 +207,7 @@ function saveBudget() {
   config.budget = Number(document.getElementById('budgetInput').value) || 0;
   saveConfig();
   updateSummary();
-  toast('תקציב נשמר ✓', 'success');
+  toast(t('toast_saved'), 'success');
   if (localStorage.getItem('mct-sync-pwd')) saveToServer();
 }
 
@@ -236,7 +236,7 @@ function updateSummary() {
   bar.style.width = pct + '%';
   bar.className = 'hero-progress-bar' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warn' : '');
   document.getElementById('progressPct').textContent = pct + '%';
-  document.getElementById('progressSpent').textContent = '₪' + fmt(allTotal) + ' הוצא';
+  document.getElementById('progressSpent').textContent = '₪' + fmt(allTotal) + ' ' + t('spent');
   document.getElementById('heroTitle').textContent = '₪' + fmt(allTotal) + ' / ₪' + fmt(effectiveBudget);
 
   const salesRow = document.getElementById('heroSalesRow');
@@ -287,7 +287,7 @@ function renderUpcoming() {
     .filter(i => i.appointment && new Date(i.appointment) >= now && new Date(i.appointment) <= horizon)
     .sort((a, b) => a.appointment.localeCompare(b.appointment));
   if (!upcoming.length) {
-    panel.innerHTML = '<span style="font-size:.85rem;color:var(--text-muted)">אין הגעות מתוכננות בשבוע הקרוב</span>';
+    panel.innerHTML = '<span style="font-size:.85rem;color:var(--text-muted)">' + t('upcoming_empty') + '</span>';
     return;
   }
   panel.innerHTML = upcoming.map(it => {
@@ -315,14 +315,14 @@ function renderCatBreakdown() {
     const total = catItems.reduce((s, i) => s + (Number(i.price) || 0), 0);
     return { cat, total, idx, count: catItems.length };
   }).filter(x => x.count > 0).sort((a, b) => b.total - a.total);
-  if (!totals.length) { panel.innerHTML = '<span style="font-size:.85rem;color:var(--text-muted)">אין פריטים עם קטגוריות</span>'; return; }
+  if (!totals.length) { panel.innerHTML = '<span style="font-size:.85rem;color:var(--text-muted)">' + t('cat_no_items') + '</span>'; return; }
   const maxTotal = totals[0].total || 1;
   panel.innerHTML = '<div class="cat-breakdown-list">' + totals.map(({ cat, total, idx, count }) =>
     '<div class="cat-breakdown-row">' +
       '<span class="cat-chip ' + CAT_COLORS[idx % CAT_COLORS.length] + '" style="min-width:0">' + esc(cat.name) + '</span>' +
       '<div class="cat-bar-wrap"><div class="cat-bar" style="width:' + Math.round((total/maxTotal)*100) + '%"></div></div>' +
       '<span class="cat-breakdown-val">₪' + fmt(total) + '</span>' +
-      '<span class="cat-breakdown-count">' + count + ' פריטים</span>' +
+      '<span class="cat-breakdown-count">' + count + ' ' + t('items_word') + '</span>' +
     '</div>'
   ).join('') + '</div>';
 }
@@ -496,7 +496,7 @@ function visibleItems() {
 }
 
 const STATUS_CYCLE = ['pending', 'paid', 'cancelled'];
-const STATUS_LABEL = { pending: 'ממתין', paid: 'שולם', cancelled: 'בוטל' };
+const STATUS_LABEL = new Proxy({}, { get: (_, k) => (typeof statusLabel === 'function' ? statusLabel(k) : k) });
 
 // Build the quotes comparison section HTML for expanded card view
 function buildQuotesHtml(item) {
@@ -547,8 +547,8 @@ function renderItemsTable() {
     // ── Group header (room / category sort) ──
     if (currentSort === 'room' || currentSort === 'cat') {
       const group = currentSort === 'room'
-        ? (item.room || 'ללא חדר')
-        : (cat ? cat.name : 'ללא קטגוריה');
+        ? (item.room ? roomLabel(item.room) : t('no_room'))
+        : (cat ? cat.name : t('no_cat'));
       if (group !== lastGroup) {
         const hdr = document.createElement('div');
         hdr.className = 'group-header';
@@ -560,7 +560,7 @@ function renderItemsTable() {
 
     // ── Category chip select ──
     const colorClass = cat ? CAT_COLORS[catIdx % CAT_COLORS.length] : 'cat-unset';
-    const catOpts = '<option value="" style="background:#fff;color:#78716c">ללא קטגוריה</option>' +
+    const catOpts = '<option value="" style="background:#fff;color:#78716c">' + t('no_cat') + '</option>' +
       categories.map((c, idx) =>
         '<option value="' + c.id + '"' + (c.id === item.category_id ? ' selected' : '') +
         ' style="' + CAT_OPTION_STYLES[idx % CAT_OPTION_STYLES.length] + '">' + esc(c.name) + '</option>'
@@ -571,10 +571,10 @@ function renderItemsTable() {
     // ── Room chip select ──
     const roomIdx = item.room ? ROOM_PRESETS.indexOf(item.room) : -1;
     const roomColorClass = roomIdx >= 0 ? 'room-chip-' + roomIdx : 'cat-unset';
-    const roomOpts = '<option value="" style="background:#fff;color:#78716c">🏠 חדר...</option>' +
+    const roomOpts = '<option value="" style="background:#fff;color:#78716c">🏠 ' + t('f_room') + '…</option>' +
       ROOM_PRESETS.map((r, idx) =>
         '<option value="' + r + '"' + (item.room === r ? ' selected' : '') +
-        ' style="' + ROOM_OPTION_STYLES[idx] + '">' + r + '</option>'
+        ' style="' + ROOM_OPTION_STYLES[idx] + '">' + roomLabel(r) + '</option>'
       ).join('');
     const roomSelect = '<select class="cat-chip room-chip ' + roomColorClass + ' inline-cat-select" onchange="patchRoom(' + item.id + ',this)">' +
       roomOpts + '</select>';
@@ -626,7 +626,7 @@ function renderItemsTable() {
           '<div><label>הערות</label>' +
             '<input type="text" value="' + esc(item.notes || '') + '"' +
             ' onblur="patch(' + item.id + ',\'notes\',this.value)" placeholder="הערות חופשיות..." /></div>' +
-          '<div class="icard-span2"><label>קטגוריה (סוג הוצאה)</label>' +
+          '<div class="icard-span2"><label>' + t('f_category') + '</label>' +
             '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
               '<select style="flex:1;min-width:130px" onchange="patchCat(' + item.id + ',this)">' +
               catOptsDetail + '</select>' +
@@ -758,7 +758,7 @@ function deleteItem(id) {
   saveItems();
   renderItemsTable();
   updateSummary();
-  toast('פריט נמחק');
+  toast(t('toast_deleted'));
 }
 
 function togglePhoneField() {
@@ -778,7 +778,7 @@ function addItem() {
     Number(document.getElementById('newItemCategory').value) : null;
   const phone = document.getElementById('newItemPhone').value.trim();
   const room  = document.getElementById('newItemRoom').value || null;
-  if (!name) { toast('הזן שם לפריט', 'error'); return; }
+  if (!name) { toast(t('toast_enter_name'), 'error'); return; }
 
   items.push({
     id: nextId(items), name, price, currency: 'ILS',
@@ -798,7 +798,7 @@ function addItem() {
 
   renderItemsTable();
   updateSummary();
-  toast('פריט נוסף ✓', 'success');
+  toast(t('toast_item_added'), 'success');
 }
 
 // ── Quotes ────────────────────────────────────────────────
@@ -934,7 +934,7 @@ function expandItem(id) {
 
 // ── Sale Items ────────────────────────────────────────────
 const SALE_STATUS_CYCLE = ['forsale', 'sold', 'removed'];
-const SALE_STATUS_LABEL = { forsale: 'למכירה', sold: 'נמכר', removed: 'הוסר' };
+const SALE_STATUS_LABEL = new Proxy({}, { get: (_, k) => (typeof t === 'function' ? t('sst_' + k) : k) });
 
 function setSaleFilter(btn, filter) {
   currentSaleFilter = filter;
@@ -1053,14 +1053,14 @@ function deleteSaleItem(id) {
   saveSaleItems();
   renderSaleItems();
   updateSummary();
-  toast('פריט נמחק');
+  toast(t('toast_deleted'));
 }
 
 function addSaleItem() {
   const name     = document.getElementById('newSaleName').value.trim();
   const askPrice = Number(document.getElementById('newSaleAskPrice').value) || 0;
   const notes    = document.getElementById('newSaleNotes').value.trim();
-  if (!name) { toast('הזן שם לפריט', 'error'); return; }
+  if (!name) { toast(t('toast_enter_name'), 'error'); return; }
 
   saleItems.push({ id: nextId(saleItems), name, askPrice, soldPrice: 0, status: 'forsale', notes });
   saveSaleItems();
@@ -1071,7 +1071,7 @@ function addSaleItem() {
 
   renderSaleItems();
   updateSummary();
-  toast('פריט נוסף ✓', 'success');
+  toast(t('toast_item_added'), 'success');
 }
 
 // ── Export / Import JSON ──────────────────────────────────
@@ -1128,7 +1128,7 @@ const SYNC_API = localStorage.getItem('mct-api-url') ||
     : '/api/sync');
 
 async function loadFromServer() {
-  toast('טוען מהשרת...', 'info');
+  toast(t('loading_server'), 'info');
   try {
     const res = await fetch(SYNC_API);
     if (!res.ok) throw new Error(res.status);
@@ -1139,9 +1139,9 @@ async function loadFromServer() {
     if (data.sales)      { saleItems  = data.sales;      saveSaleItems(); }
     renderCategoryChips(); renderRoomChips(); renderCategoryDropdown();
     renderItemsTable(); renderSaleItems(); updateSummary();
-    toast('נטען מהשרת ✓', 'success');
+    toast(t('toast_loaded_server'), 'success');
   } catch (err) {
-    toast('שגיאה בטעינה: ' + err.message, 'error');
+    toast(t('toast_load_err') + err.message, 'error');
   }
 }
 
@@ -1159,7 +1159,7 @@ async function saveToServer() {
     pwd = pwd.trim();
   }
 
-  toast('שומר לשרת...', 'info');
+  toast(t('saving_server'), 'info');
   try {
     const res = await fetch(SYNC_API, {
       method: 'POST',
@@ -1172,7 +1172,7 @@ async function saveToServer() {
       return;
     }
     if (!res.ok) throw new Error(await res.text());
-    toast('נשמר בשרת ✓', 'success');
+    toast(t('toast_saved_server'), 'success');
   } catch (err) {
     toast('שגיאה: ' + err.message, 'error');
   }
@@ -1220,14 +1220,14 @@ function renderCharts() {
   _mkChart('chartStatus', {
     type: 'doughnut',
     data: {
-      labels: ['שולם', 'ממתין', 'בוטל'],
+      labels: [statusLabel('paid'), statusLabel('pending'), statusLabel('cancelled')],
       datasets: [{ data: [paid, pending, cancelled], backgroundColor: ['#14b8a6','#f59e0b','#9ca3af'], borderWidth: 2, borderColor: '#fff' }],
     },
     options: {
       responsive: true, maintainAspectRatio: true,
       plugins: {
         legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 }, padding: 10 } },
-        tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + ' פריטים' } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + ' ' + t('items_word') } },
       },
     },
   });
@@ -1242,7 +1242,7 @@ function renderCharts() {
   _mkChart('chartBudget', {
     type: 'bar',
     data: {
-      labels: ['שולם', 'ממתין לתשלום', 'יתרת תקציב', 'תקציב כולל'],
+      labels: [t('chart_paid'), t('chart_pending'), t('kpi_remaining'), t('chart_budget_total')],
       datasets: [{
         data: [paidAmt, pendAmt, Math.max(0, remaining), effective],
         backgroundColor: ['#14b8a6','#f59e0b', remaining < 0 ? '#f87171' : '#4ade80','#818cf8'],
@@ -1278,7 +1278,7 @@ function renderCharts() {
         responsive: true, maintainAspectRatio: true,
         plugins: {
           legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 }, padding: 10 } },
-          tooltip: { callbacks: { label: ctx => ctx.label === 'הוסר' ? ' ' + ctx.raw + ' פריטים' : ' ₪' + fmt(ctx.raw) } },
+          tooltip: { callbacks: { label: ctx => ctx.label === t('sst_removed') ? ' ' + ctx.raw + ' ' + t('items_word') : ' ₪' + fmt(ctx.raw) } },
         },
       },
     });

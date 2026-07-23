@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>מעקב הוצאות מעבר דירה</title>
+  <title data-i18n="app_title">מעקב הוצאות מעבר דירה</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,85 +12,85 @@
 
   <!-- ── SIDEBAR ── -->
   <aside class="sidebar" id="sidebar">
-  <button id="closeSidebar" class="sidebar-close" aria-label="סגור תפריט">✖</button>
+  <button id="closeSidebar" class="sidebar-close" aria-label="Close menu">✖</button>
     <div class="sidebar-logo">
       <span class="logo-icon">🏠</span>
-      <div class="logo-title">מעבר דירה</div>
-      <div class="logo-sub">מעקב הוצאות</div>
+      <div class="logo-title" data-i18n="logo_title">מעבר דירה</div>
+      <div class="logo-sub" data-i18n="logo_sub">מעקב הוצאות</div>
     </div>
 
     <nav class="sidebar-nav">
-      <div class="sidebar-section-label">תפריט</div>
+      <div class="sidebar-section-label" data-i18n="menu">תפריט</div>
       <a class="sidebar-link active" data-tab="dashboard" onclick="showTab('dashboard')">
-        <span class="nav-icon">📊</span> לוח בקרה
+        <span class="nav-icon">📊</span> <span data-i18n="nav_dashboard">לוח בקרה</span>
       </a>
       <a class="sidebar-link" data-tab="calendar" onclick="showTab('calendar')">
-        <span class="nav-icon">📅</span> לוח זמנים
+        <span class="nav-icon">📅</span> <span data-i18n="nav_calendar">לוח זמנים</span>
         <span class="nav-badge" id="sb-appt-count">0</span>
       </a>
       <a class="sidebar-link" data-tab="rooms" onclick="showTab('rooms')">
-        <span class="nav-icon">🚪</span> תכנון חדרים
+        <span class="nav-icon">🚪</span> <span data-i18n="nav_rooms">תכנון חדרים</span>
         <span class="nav-badge" id="sb-rooms-count">0</span>
       </a>
       <a class="sidebar-link" data-tab="items" onclick="showTab('items')">
-        <span class="nav-icon">📋</span> פריטים
+        <span class="nav-icon">📋</span> <span data-i18n="nav_items">פריטים</span>
         <span class="nav-badge" id="sb-items-count">0</span>
       </a>
       <a class="sidebar-link" data-tab="cats" onclick="showTab('cats')">
-        <span class="nav-icon">🏷</span> קטגוריות
+        <span class="nav-icon">🏷</span> <span data-i18n="nav_cats">קטגוריות</span>
         <span class="nav-badge" id="sb-cats-count">0</span>
       </a>
       <a class="sidebar-link" data-tab="sales" onclick="showTab('sales')">
-        <span class="nav-icon">💵</span> מכירות
+        <span class="nav-icon">💵</span> <span data-i18n="nav_sales">מכירות</span>
         <span class="nav-badge" id="sb-sales-count">0</span>
       </a>
       <a class="sidebar-link" data-tab="ikea" onclick="showTab('ikea')">
-        <span class="nav-icon">🛒</span> קניות איקאה
+        <span class="nav-icon">🛒</span> <span data-i18n="nav_ikea">קניות איקאה</span>
       </a>
       <a class="sidebar-link" data-tab="charts" onclick="showTab('charts')">
-        <span class="nav-icon">📈</span> גרפים
+        <span class="nav-icon">📈</span> <span data-i18n="nav_charts">גרפים</span>
       </a>
 
-      <div class="sidebar-section-label" style="margin-top:8px">כלים</div>
+      <div class="sidebar-section-label" style="margin-top:8px" data-i18n="tools">כלים</div>
       <button class="sidebar-link" id="sb-export">
-        <span class="nav-icon">⬇</span> ייצוא CSV
+        <span class="nav-icon">⬇</span> <span data-i18n="export_csv">ייצוא CSV</span>
       </button>
       <button class="sidebar-link" onclick="exportJSON()">
-        <span class="nav-icon">💾</span> ייצוא JSON
+        <span class="nav-icon">💾</span> <span data-i18n="export_json">ייצוא JSON</span>
       </button>
       <label class="sidebar-link" style="cursor:pointer">
-        <span class="nav-icon">📂</span> ייבוא JSON
+        <span class="nav-icon">📂</span> <span data-i18n="import_json">ייבוא JSON</span>
         <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(event)" />
       </label>
       <a class="sidebar-link" href="/guide.html" target="_blank">
-        <span class="nav-icon">📖</span> מדריך מלא
+        <span class="nav-icon">📖</span> <span data-i18n="guide">מדריך מלא</span>
       </a>
       <button class="sidebar-link" onclick="loadFromServer()">
-        <span class="nav-icon">📥</span> טען מהשרת
+        <span class="nav-icon">📥</span> <span data-i18n="load_server">טען מהשרת</span>
       </button>
       <button class="sidebar-link" onclick="saveToServer()">
-        <span class="nav-icon">☁</span> שמור לשרת
+        <span class="nav-icon">☁</span> <span data-i18n="save_server">שמור לשרת</span>
       </button>
       <button class="sidebar-link" onclick="resetSyncPassword()" style="font-size:.75rem;opacity:.7">
-        <span class="nav-icon">🔑</span> החלף סיסמה
+        <span class="nav-icon">🔑</span> <span data-i18n="change_pwd">החלף סיסמה</span>
       </button>
     </nav>
 
     <div class="sidebar-stats">
       <div class="sidebar-stat">
-        <div class="sidebar-stat-label">שולם</div>
+        <div class="sidebar-stat-label" data-i18n="stat_paid">שולם</div>
         <div class="sidebar-stat-value teal" id="sb-paid">₪0</div>
       </div>
       <div class="sidebar-stat">
-        <div class="sidebar-stat-label">ממתין</div>
+        <div class="sidebar-stat-label" data-i18n="stat_pending">ממתין</div>
         <div class="sidebar-stat-value amber" id="sb-pending">₪0</div>
       </div>
       <div class="sidebar-stat">
-        <div class="sidebar-stat-label">יתרת תקציב</div>
+        <div class="sidebar-stat-label" data-i18n="stat_remaining">יתרת תקציב</div>
         <div class="sidebar-stat-value orange" id="sb-remaining">₪0</div>
       </div>
       <div class="sidebar-stat">
-        <div class="sidebar-stat-label">הכנסות מכירות</div>
+        <div class="sidebar-stat-label" data-i18n="stat_sales_income">הכנסות מכירות</div>
         <div class="sidebar-stat-value" style="color:#5eead4" id="sb-sales-income">₪0</div>
       </div>
     </div>
@@ -103,41 +103,40 @@
 
     <div class="topbar">
       <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
-      <span class="topbar-title" id="topbarTitle">📊 לוח בקרה</span>
+      <span class="topbar-title" id="topbarTitle" data-i18n="t_dashboard">📊 לוח בקרה</span>
       <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm" id="langBtn" onclick="toggleLang()">English</button>
         <button class="btn btn-outline btn-sm" id="exportCsvBtn">⬇ CSV</button>
       </div>
     </div>
 
     <div class="main">
 
-      <!-- ══════════════════════════════════════════════
-           TAB: DASHBOARD
-           ══════════════════════════════════════════════ -->
+      <!-- TAB: DASHBOARD -->
       <div class="tab-page" id="tab-dashboard">
 
         <div class="page-hero" id="section-budget">
-          <div class="hero-label">סיכום תקציב</div>
+          <div class="hero-label" data-i18n="budget_summary">סיכום תקציב</div>
           <div class="hero-title" id="heroTitle">₪0 / ₪0</div>
           <div class="hero-progress-wrap">
             <div class="hero-progress-bar" id="progressBar" style="width:0%"></div>
           </div>
           <div class="hero-meta">
-            <span id="progressSpent">₪0 הוצא</span>
+            <span id="progressSpent">₪0</span>
             <span id="progressPct">0%</span>
           </div>
           <div class="hero-budget-row">
-            <span class="hero-budget-label">הגדר תקציב:</span>
+            <span class="hero-budget-label" data-i18n="set_budget">הגדר תקציב:</span>
             <input type="number" id="budgetInput" placeholder="0" min="0" />
-            <button class="btn btn-primary btn-sm" id="saveBudget">שמור</button>
+            <button class="btn btn-primary btn-sm" id="saveBudget" data-i18n="save">שמור</button>
           </div>
           <div class="hero-sales-row" id="heroSalesRow" style="display:none">
-            <span class="hero-budget-label">💵 נמכר בפועל:</span>
+            <span class="hero-budget-label" data-i18n="sold_actual">💵 נמכר בפועל:</span>
             <span class="hero-sales-amount" id="heroSalesAmount">₪0</span>
-            <span style="font-size:.75rem;color:rgba(255,255,255,.5)">(כלול בתקציב)</span>
+            <span style="font-size:.75rem;color:rgba(255,255,255,.5)" data-i18n="included_budget">(כלול בתקציב)</span>
           </div>
           <div class="hero-projected-row" id="heroProjectedRow" style="display:none">
-            <span class="hero-budget-label">📈 הערכה אם הכל יימכר:</span>
+            <span class="hero-budget-label" data-i18n="projected_all">📈 הערכה אם הכל יימכר:</span>
             <span id="heroProjectedAmount" class="hero-projected-amount">₪0</span>
             <span id="heroProjectedRemaining" class="hero-projected-remain"></span>
           </div>
@@ -146,261 +145,240 @@
         <div class="kpi-row">
           <div class="kpi-card kpi-card-total">
             <span class="kpi-icon">📦</span>
-            <div class="kpi-label">סה״כ פריטים</div>
+            <div class="kpi-label" data-i18n="kpi_total">סה״כ פריטים</div>
             <div class="kpi-value" id="kpiTotal">0</div>
           </div>
           <div class="kpi-card kpi-card-paid">
             <span class="kpi-icon">✅</span>
-            <div class="kpi-label">שולם</div>
+            <div class="kpi-label" data-i18n="kpi_paid">שולם</div>
             <div class="kpi-value" id="kpiPaid">₪0</div>
           </div>
           <div class="kpi-card kpi-card-pending">
             <span class="kpi-icon">⏳</span>
-            <div class="kpi-label">ממתין לתשלום</div>
+            <div class="kpi-label" data-i18n="kpi_pending">ממתין לתשלום</div>
             <div class="kpi-value" id="kpiPending">₪0</div>
           </div>
           <div class="kpi-card kpi-card-remain">
             <span class="kpi-icon">💰</span>
-            <div class="kpi-label">יתרת תקציב</div>
+            <div class="kpi-label" data-i18n="kpi_remaining">יתרת תקציב</div>
             <div class="kpi-value" id="kpiRemaining">₪0</div>
           </div>
         </div>
 
-        <!-- Upcoming appointments widget -->
         <div class="panel">
           <div class="panel-header">
-            <h2>🔔 הגעות קרובות (7 ימים הבאים)</h2>
+            <h2 data-i18n="upcoming_header">🔔 הגעות קרובות (7 ימים הבאים)</h2>
           </div>
           <div class="panel-body" id="upcomingPanel">
-            <span style="font-size:.85rem;color:var(--text-muted)">אין הגעות מתוכננות בשבוע הקרוב</span>
+            <span style="font-size:.85rem;color:var(--text-muted)" data-i18n="upcoming_empty">אין הגעות מתוכננות בשבוע הקרוב</span>
           </div>
         </div>
 
-        <!-- Category spend breakdown -->
         <div class="panel">
           <div class="panel-header">
-            <h2>🏷 הוצאות לפי קטגוריה</h2>
+            <h2 data-i18n="cat_spend_header">🏷 הוצאות לפי קטגוריה</h2>
           </div>
           <div class="panel-body" id="catBreakdown"></div>
         </div>
 
       </div><!-- /tab-dashboard -->
 
-      <!-- ══════════════════════════════════════════════
-           TAB: CALENDAR
-           ══════════════════════════════════════════════ -->
+      <!-- TAB: CALENDAR -->
       <div class="tab-page" id="tab-calendar" style="display:none">
         <div class="panel">
           <div class="panel-header">
-            <h2>📅 לוח זמנים שבועי</h2>
+            <h2 data-i18n="cal_header">📅 לוח זמנים שבועי</h2>
           </div>
           <div class="panel-body">
             <div class="cal-nav">
-              <button class="btn btn-ghost btn-sm" onclick="calPrevWeek()">→ קודם</button>
-              <button class="btn btn-primary btn-sm" onclick="calToday()">היום</button>
+              <button class="btn btn-ghost btn-sm" onclick="calPrevWeek()" data-i18n="cal_prev">קודם</button>
+              <button class="btn btn-primary btn-sm" onclick="calToday()" data-i18n="cal_today">היום</button>
               <span id="calWeekLabel">—</span>
-              <button class="btn btn-ghost btn-sm" onclick="calNextWeek()">הבא ←</button>
-              <button class="btn btn-outline-dark btn-sm" id="calToggleBtn" onclick="calToggleWeeks()">2 שבועות ▼</button>
+              <button class="btn btn-ghost btn-sm" onclick="calNextWeek()" data-i18n="cal_next">הבא</button>
+              <button class="btn btn-outline-dark btn-sm" id="calToggleBtn" onclick="calToggleWeeks()" data-i18n="cal_2weeks">2 שבועות ▼</button>
             </div>
             <div class="cal-grid" id="calGrid"></div>
           </div>
         </div>
       </div><!-- /tab-calendar -->
 
-      <!-- ══════════════════════════════════════════════
-           TAB: ITEMS
-           ══════════════════════════════════════════════ -->
+      <!-- TAB: ITEMS -->
       <div class="tab-page" id="tab-items" style="display:none">
         <div class="panel">
           <div class="panel-header">
-            <h2>📋 פריטים ועלויות</h2>
+            <h2 data-i18n="items_header">📋 פריטים ועלויות</h2>
           </div>
           <div class="panel-body">
             <div class="items-toolbar">
-              <button class="filter-btn active" onclick="setFilter(this,'all')">הכל</button>
-              <button class="filter-btn" onclick="setFilter(this,'pending')">⏳ ממתין</button>
-              <button class="filter-btn" onclick="setFilter(this,'paid')">✅ שולם</button>
-              <button class="filter-btn" onclick="setFilter(this,'cancelled')">❌ בוטל</button>
+              <button class="filter-btn active" onclick="setFilter(this,'all')" data-i18n="filter_all">הכל</button>
+              <button class="filter-btn" onclick="setFilter(this,'pending')" data-i18n="filter_pending">⏳ ממתין</button>
+              <button class="filter-btn" onclick="setFilter(this,'paid')" data-i18n="filter_paid">✅ שולם</button>
+              <button class="filter-btn" onclick="setFilter(this,'cancelled')" data-i18n="filter_cancelled">❌ בוטל</button>
               <span class="spacer"></span>
-              <input class="search-input" type="text" id="searchInput" placeholder="🔍 חיפוש..." oninput="renderItemsTable()" />
+              <input class="search-input" type="text" id="searchInput" data-i18n-ph="search_ph" placeholder="🔍 חיפוש..." oninput="renderItemsTable()" />
             </div>
             <div class="sort-bar">
-              <span class="sort-label">מיון:</span>
-              <button class="sort-btn active" onclick="setSort(this,'manual')">⠿ ידני</button>
-              <button class="sort-btn" onclick="setSort(this,'price-desc')">₪ יורד</button>
-              <button class="sort-btn" onclick="setSort(this,'price-asc')">₪ עולה</button>
-              <button class="sort-btn" onclick="setSort(this,'room')">🏠 חדר</button>
-              <button class="sort-btn" onclick="setSort(this,'cat')">🏷 קטגוריה</button>
+              <span class="sort-label" data-i18n="sort_label">מיון:</span>
+              <button class="sort-btn active" onclick="setSort(this,'manual')" data-i18n="sort_manual">⠿ ידני</button>
+              <button class="sort-btn" onclick="setSort(this,'price-desc')" data-i18n="sort_price_desc">₪ יורד</button>
+              <button class="sort-btn" onclick="setSort(this,'price-asc')" data-i18n="sort_price_asc">₪ עולה</button>
+              <button class="sort-btn" onclick="setSort(this,'room')" data-i18n="sort_room">🏠 חדר</button>
+              <button class="sort-btn" onclick="setSort(this,'cat')" data-i18n="sort_cat">🏷 קטגוריה</button>
             </div>
 
             <div class="items-grid" id="itemsGrid"></div>
             <div class="empty-state" id="emptyState" style="display:none">
               <div class="icon">📦</div>
-              <p>אין פריטים. הוסף פריט חדש למטה.</p>
+              <p data-i18n="items_empty">אין פריטים. הוסף פריט חדש למטה.</p>
             </div>
 
             <div class="divider"></div>
-            <div class="add-section-label">הוסף פריט חדש</div>
+            <div class="add-section-label" data-i18n="add_item_label">הוסף פריט חדש</div>
             <div class="add-item-form">
               <div class="field-group" style="flex:2">
-                <label>שם הפריט</label>
-                <input type="text" id="newItemName" placeholder="לדוגמה: מובילים" />
+                <label data-i18n="f_item_name">שם הפריט</label>
+                <input type="text" id="newItemName" data-i18n-ph="f_item_name_ph" placeholder="לדוגמה: מובילים" />
               </div>
               <div class="field-group">
-                <label>מחיר (₪)</label>
+                <label data-i18n="f_price">מחיר (₪)</label>
                 <input type="number" id="newItemPrice" placeholder="0" min="0" />
               </div>
               <div class="field-group">
-                <label>קטגוריה (סוג הוצאה)</label>
+                <label data-i18n="f_category">קטגוריה (סוג הוצאה)</label>
                 <select id="newItemCategory"></select>
               </div>
               <div class="field-group">
-                <label>חדר</label>
+                <label data-i18n="f_room">חדר</label>
                 <select id="newItemRoom">
-                  <option value="">— ללא —</option>
-                  <option value="כללי">כללי</option>
-                  <option value="חדר שינה ראשי">חדר שינה ראשי</option>
-                  <option value="חדר ילדים">חדר ילדים</option>
-                  <option value="חדר תינוק">חדר תינוק</option>
-                  <option value="סלון">סלון</option>
-                  <option value="מטבח">מטבח</option>
-                  <option value="מרפסת">מרפסת</option>
-                  <option value="חדר עבודה">חדר עבודה</option>
-                  <option value="חדר אמבטיה">חדר אמבטיה</option>
+                  <option value="" data-i18n="opt_none">— ללא —</option>
+                  <option value="כללי" data-i18n="room_general">כללי</option>
+                  <option value="חדר שינה ראשי" data-i18n="room_master">חדר שינה ראשי</option>
+                  <option value="חדר ילדים" data-i18n="room_kids">חדר ילדים</option>
+                  <option value="חדר תינוק" data-i18n="room_baby">חדר תינוק</option>
+                  <option value="סלון" data-i18n="room_living">סלון</option>
+                  <option value="מטבח" data-i18n="room_kitchen">מטבח</option>
+                  <option value="מרפסת" data-i18n="room_balcony">מרפסת</option>
+                  <option value="חדר עבודה" data-i18n="room_office">חדר עבודה</option>
+                  <option value="חדר אמבטיה" data-i18n="room_bath">חדר אמבטיה</option>
                 </select>
               </div>
               <div class="field-group" id="newPhoneGroup" style="display:none">
-                <label>טלפון ספק</label>
+                <label data-i18n="f_supplier_phone">טלפון ספק</label>
                 <input type="tel" id="newItemPhone" placeholder="050-..." />
               </div>
               <div class="field-group" style="align-self:end">
-                <button class="btn btn-ghost btn-sm" id="togglePhoneBtn" onclick="togglePhoneField()" style="margin-bottom:6px">+ טלפון</button>
-                <button class="btn btn-primary" id="addItem">+ הוסף</button>
+                <button class="btn btn-ghost btn-sm" id="togglePhoneBtn" onclick="togglePhoneField()" style="margin-bottom:6px" data-i18n="btn_add_phone">+ טלפון</button>
+                <button class="btn btn-primary" id="addItem" data-i18n="btn_add">+ הוסף</button>
               </div>
             </div>
           </div>
         </div>
       </div><!-- /tab-items -->
 
-      <!-- ══════════════════════════════════════════════
-           TAB: CATEGORIES
-           ══════════════════════════════════════════════ -->
+      <!-- TAB: CATEGORIES -->
       <div class="tab-page" id="tab-cats" style="display:none">
 
         <div class="panel">
           <div class="panel-header">
-            <h2>🏷 קטגוריות (סוג הוצאה)</h2>
+            <h2 data-i18n="cats_header">🏷 קטגוריות (סוג הוצאה)</h2>
           </div>
           <div class="panel-body">
-            <p style="font-size:.8rem;color:var(--text-muted);margin:0 0 10px">סוג ההוצאה: הובלה, ריהוט, חשמל...</p>
+            <p style="font-size:.8rem;color:var(--text-muted);margin:0 0 10px" data-i18n="cats_help">סוג ההוצאה: הובלה, ריהוט, חשמל...</p>
             <div class="cat-chips" id="catChips"></div>
             <hr class="divider" />
             <div class="cat-add-row">
-              <input type="text" id="newCatName" placeholder="שם קטגוריה חדשה..." />
-              <button class="btn btn-primary" id="addCategory">+ הוסף קטגוריה</button>
+              <input type="text" id="newCatName" data-i18n-ph="new_cat_ph" placeholder="שם קטגוריה חדשה..." />
+              <button class="btn btn-primary" id="addCategory" data-i18n="add_cat">+ הוסף קטגוריה</button>
             </div>
           </div>
         </div>
 
         <div class="panel" style="margin-top:16px">
           <div class="panel-header">
-            <h2>🏠 חדרים</h2>
+            <h2 data-i18n="rooms_header">🏠 חדרים</h2>
           </div>
           <div class="panel-body">
-            <p style="font-size:.8rem;color:var(--text-muted);margin:0 0 10px">החדרים קבועים — נבחרים על כל פריט ישירות בכרטיס.</p>
+            <p style="font-size:.8rem;color:var(--text-muted);margin:0 0 10px" data-i18n="rooms_help">החדרים קבועים — נבחרים על כל פריט ישירות בכרטיס.</p>
             <div class="cat-chips" id="roomChips"></div>
           </div>
         </div>
 
       </div><!-- /tab-cats -->
 
-      <!-- ══════════════════════════════════════════════
-           TAB: ROOMS — per-room planning + wishlists
-           ══════════════════════════════════════════════ -->
+      <!-- TAB: ROOMS -->
       <div class="tab-page" id="tab-rooms" style="display:none">
         <div id="roomsRoot"></div>
       </div><!-- /tab-rooms -->
 
-      <!-- ══════════════════════════════════════════════
-           TAB: SALES
-           ══════════════════════════════════════════════ -->
+      <!-- TAB: SALES -->
       <div class="tab-page" id="tab-sales" style="display:none">
         <div class="panel">
           <div class="panel-header">
-            <h2>💵 פריטים למכירה</h2>
+            <h2 data-i18n="sales_header">💵 פריטים למכירה</h2>
           </div>
           <div class="panel-body">
 
             <div id="salesSummary"></div>
 
             <div class="items-toolbar">
-              <button class="filter-btn active" onclick="setSaleFilter(this,'all')">הכל</button>
-              <button class="filter-btn" onclick="setSaleFilter(this,'forsale')">💰 למכירה</button>
-              <button class="filter-btn" onclick="setSaleFilter(this,'sold')">✅ נמכר</button>
-              <button class="filter-btn" onclick="setSaleFilter(this,'removed')">❌ הוסר</button>
+              <button class="filter-btn active" onclick="setSaleFilter(this,'all')" data-i18n="filter_all">הכל</button>
+              <button class="filter-btn" onclick="setSaleFilter(this,'forsale')" data-i18n="sale_forsale">💰 למכירה</button>
+              <button class="filter-btn" onclick="setSaleFilter(this,'sold')" data-i18n="sale_sold">✅ נמכר</button>
+              <button class="filter-btn" onclick="setSaleFilter(this,'removed')" data-i18n="sale_removed">❌ הוסר</button>
             </div>
 
             <div class="items-grid" id="saleGrid"></div>
             <div class="empty-state" id="saleEmpty" style="display:none">
               <div class="icon">🏷</div>
-              <p>אין פריטים למכירה. הוסף פריט למטה.</p>
+              <p data-i18n="sales_empty">אין פריטים למכירה. הוסף פריט למטה.</p>
             </div>
 
             <div class="divider"></div>
-            <div class="add-section-label">הוסף פריט למכירה</div>
+            <div class="add-section-label" data-i18n="add_sale_label">הוסף פריט למכירה</div>
             <div class="add-item-form">
               <div class="field-group" style="flex:2">
-                <label>שם הפריט</label>
-                <input type="text" id="newSaleName" placeholder="לדוגמה: ספה ישנה" />
+                <label data-i18n="f_item_name">שם הפריט</label>
+                <input type="text" id="newSaleName" data-i18n-ph="f_sale_name_ph" placeholder="לדוגמה: ספה ישנה" />
               </div>
               <div class="field-group">
-                <label>מחיר מבוקש (₪)</label>
+                <label data-i18n="f_ask_price">מחיר מבוקש (₪)</label>
                 <input type="number" id="newSaleAskPrice" placeholder="0" min="0" />
               </div>
               <div class="field-group">
-                <label>הערות / קישור</label>
-                <input type="text" id="newSaleNotes" placeholder="יד2, פייסבוק..." />
+                <label data-i18n="f_notes">הערות / קישור</label>
+                <input type="text" id="newSaleNotes" data-i18n-ph="f_notes_ph" placeholder="יד2, פייסבוק..." />
               </div>
               <div class="field-group" style="align-self:end">
-                <button class="btn btn-primary" id="addSaleItem">+ הוסף</button>
+                <button class="btn btn-primary" id="addSaleItem" data-i18n="btn_add">+ הוסף</button>
               </div>
             </div>
           </div>
         </div>
       </div><!-- /tab-sales -->
 
-      <!-- ══════════════════════════════════════════════
-           TAB: CHARTS
-           ══════════════════════════════════════════════ -->
+      <!-- TAB: CHARTS -->
       <div class="tab-page" id="tab-charts" style="display:none">
         <div class="charts-grid">
-
           <div class="panel chart-panel">
-            <div class="panel-header"><h2>🏷 הוצאות לפי קטגוריה</h2></div>
+            <div class="panel-header"><h2 data-i18n="chart_cats">🏷 הוצאות לפי קטגוריה</h2></div>
             <div class="panel-body chart-body"><canvas id="chartCats"></canvas></div>
           </div>
-
           <div class="panel chart-panel">
-            <div class="panel-header"><h2>📋 סטטוס פריטים</h2></div>
+            <div class="panel-header"><h2 data-i18n="chart_status">📋 סטטוס פריטים</h2></div>
             <div class="panel-body chart-body"><canvas id="chartStatus"></canvas></div>
           </div>
-
           <div class="panel chart-panel chart-wide">
-            <div class="panel-header"><h2>💰 תקציב vs הוצאות</h2></div>
+            <div class="panel-header"><h2 data-i18n="chart_budget">💰 תקציב vs הוצאות</h2></div>
             <div class="panel-body chart-body chart-body-bar"><canvas id="chartBudget"></canvas></div>
           </div>
-
           <div class="panel chart-panel">
-            <div class="panel-header"><h2>💵 מכירות</h2></div>
+            <div class="panel-header"><h2 data-i18n="chart_sales">💵 מכירות</h2></div>
             <div class="panel-body chart-body"><canvas id="chartSales"></canvas></div>
           </div>
-
         </div>
       </div><!-- /tab-charts -->
 
-      <!-- ══════════════════════════════════════════════
-           TAB: IKEA — curated new-home shopping list
-           ══════════════════════════════════════════════ -->
+      <!-- TAB: IKEA -->
       <div class="tab-page" id="tab-ikea" style="display:none">
         <div id="ikeaRoot"></div>
       </div><!-- /tab-ikea -->
@@ -410,9 +388,11 @@
 </div><!-- /app-layout -->
 
 <div id="toast-container"></div>
+<script src="i18n.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="script.js"></script>
 <script src="rooms.js"></script>
 <script src="ikea.js"></script>
+<script>window.addEventListener('DOMContentLoaded', function(){ if(typeof applyLang==='function') applyLang(); });</script>
 </body>
 </html>
