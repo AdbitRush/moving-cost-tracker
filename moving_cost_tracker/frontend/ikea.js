@@ -47,6 +47,11 @@ const Ikea = (() => {
       { sku:'LISABO', name:'שולחן', desc:'פורניר מילה', price:695, was:895, itemNo:'70294339', w:140, d:78, h:74, img:'lisabo-table-ash-veneer__0737105_pe740883' },
       { sku:'PINNTORP', name:'שולחן + 4 כיסאות', price:1630, itemNo:'s89564449', w:125, d:75, h:75, tag:'סט שלם', img:'pinntorp-table-and-4-chairs-light-brown-stained-white-stained-light-brown-stained__1301604_pe937493' },
     ]},
+    { icon:'🪑', title:'כיסאות לפינת אוכל', room:'סלון', items:[
+      { sku:'SANDSBERG', name:'כיסא', desc:'עץ, קומפקטי', price:69, itemNo:'10605424', tag:'הכי זול', img:'sandsberg-chair-white__1390727_pe965548' },
+      { sku:'KÄTTIL', name:'כיסא מרופד', price:225, was:295, itemNo:'60500325', img:'kaettil-chair-white-knisa-light-grey__1016338_pe830329' },
+      { sku:'TOBIAS', name:'כיסא שקוף', desc:'עיצוב מודרני', price:450, itemNo:'80349671', img:'tobias-chair-transparent-chrome-plated__0727342_pe735614' },
+    ]},
     { icon:'📺', title:'אחסון וסלון', room:'סלון', items:[
       { sku:'BESTÅ', name:'יחידת טלוויזיה', price:445, was:585, itemNo:'70299879', w:180, d:40, h:64, img:'besta-tv-bench-white__0377001_pe516832' },
       { sku:'BILLY', name:'ארון ספרים 80 ס"מ', price:295, was:395, itemNo:'00263850', w:80, d:28, h:202, tag:'קלאסיקה', img:'billy-bookcase-white__0625599_pe692385' },
@@ -85,6 +90,11 @@ const Ikea = (() => {
     ]},
     { icon:'🛁', title:'מגבות', room:'חדר אמבטיה', items:[
       { sku:'VÅGSJÖN', name:'מגבת רחצה', size:'70×140', price:19, was:25, itemNo:'20609134', img:'vagsjoen-bath-towel-dark-grey__0604997_pe681580' },
+    ]},
+    { icon:'🪞', title:'מראות', room:'כללי', items:[
+      { sku:'NISSEDAL', name:'מראה', size:'65×150', price:345, itemNo:'80605487', img:'nissedal-mirror-white__0637799_pe698595' },
+      { sku:'LINDBYN', name:'מראה', size:'60×170', price:450, itemNo:'80597232', img:'lindbyn-mirror-black__1374978_pe960159' },
+      { sku:'HOVET', name:'מראה גדולה', size:'78×196', price:695, itemNo:'70515915', img:'hovet-mirror-black__1100010_pe866038' },
     ]},
   ];
 
