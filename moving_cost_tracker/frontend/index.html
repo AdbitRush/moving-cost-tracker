@@ -44,6 +44,9 @@
         <span class="nav-icon">💵</span> מכירות
         <span class="nav-badge" id="sb-sales-count">0</span>
       </a>
+      <a class="sidebar-link" data-tab="ikea" onclick="showTab('ikea')">
+        <span class="nav-icon">🛒</span> קניות איקאה
+      </a>
       <a class="sidebar-link" data-tab="charts" onclick="showTab('charts')">
         <span class="nav-icon">📈</span> גרפים
       </a>
@@ -395,6 +398,13 @@
         </div>
       </div><!-- /tab-charts -->
 
+      <!-- ══════════════════════════════════════════════
+           TAB: IKEA — curated new-home shopping list
+           ══════════════════════════════════════════════ -->
+      <div class="tab-page" id="tab-ikea" style="display:none">
+        <div id="ikeaRoot"></div>
+      </div><!-- /tab-ikea -->
+
     </div><!-- /main -->
   </div><!-- /app-content -->
 </div><!-- /app-layout -->
@@ -403,5 +413,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="script.js"></script>
 <script src="rooms.js"></script>
+<script src="ikea.js"></script>
 </body>
 </html>

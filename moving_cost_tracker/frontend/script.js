@@ -153,6 +153,7 @@ const TAB_TITLES = {
   cats:      '🏷 קטגוריות',
   sales:     '💵 פריטים למכירה',
   charts:    '📈 גרפים',
+  ikea:      '🛒 קניות איקאה',
 };
 
 function showTab(name) {
@@ -170,6 +171,7 @@ function showTab(name) {
   if (name === 'cats') { renderCategoryChips(); renderRoomChips(); renderCategoryDropdown(); }
   if (name === 'sales') renderSaleItems();
   if (name === 'charts') renderCharts();
+  if (name === 'ikea' && typeof Ikea !== 'undefined') Ikea.render();
 }
 
 // ── Sidebar ───────────────────────────────────────────────
