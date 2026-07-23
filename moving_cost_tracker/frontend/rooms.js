@@ -8,7 +8,7 @@ const Rooms = (() => {
   let filter = 'all'; // all | open | done
 
   const ICONS = ['🚪','🛋️','🍳','🛏️','🛁','👶','🧸','💻','📚','🎮','🌿','🧺','🚗','🐕'];
-  const PRIO = { high: { he: 'חובה', cls: 'rp-high' }, normal: { he: 'רגיל', cls: 'rp-normal' }, low: { he: 'אם יוצא', cls: 'rp-low' } };
+  const PRIO = { high: { key: 'rp_must', cls: 'rp-high' }, normal: { key: 'rp_normal', cls: 'rp-normal' }, low: { key: 'rp_maybe', cls: 'rp-low' } };
 
   async function api(url, method = 'GET', body) {
     const opt = { method, headers: { 'Content-Type': 'application/json' } };
@@ -82,15 +82,15 @@ const Rooms = (() => {
       const st = roomStats(r.id);
       const pct = st.total ? Math.round(st.done / st.total * 100) : 0;
       h += `<div class="rm-card${openRoomId === r.id ? ' rm-open' : ''}" onclick="Rooms.open(${r.id})">
-        <button class="rm-del" onclick="event.stopPropagation();Rooms.delRoom(${r.id})" title="מחק חדר">✖</button>
+        <button class="rm-del" onclick="event.stopPropagation();Rooms.delRoom(${r.id})" title="${t('rp_del_title')}">✖</button>
         <div class="rm-icon">${r.icon}</div>
         <div class="rm-name">${esc(r.name)}</div>
         <div class="rm-owner">${r.owner ? '👤 ' + esc(r.owner) : ''}</div>
         <div class="rm-progress"><div style="width:${pct}%"></div></div>
-        <div class="rm-count">${st.done}/${st.total} הושלמו</div>
+        <div class="rm-count">${st.done}/${st.total} ${t('rp_done')}</div>
       </div>`;
     });
-    h += `<div class="rm-card rm-add" onclick="document.getElementById('rmNewName').focus()">＋<br>חדר חדש</div></div>`;
+    h += `<div class="rm-card rm-add" onclick="document.getElementById('rmNewName').focus()">＋<br>${t('rp_add_room')}</div></div>`;
     return h;
   }
 
@@ -103,23 +103,23 @@ const Rooms = (() => {
     items.sort((a, b) => (a.done - b.done) || ({high:0,normal:1,low:2}[a.priority] - {high:0,normal:1,low:2}[b.priority]));
 
     let h = `<div class="rm-panel" style="margin-bottom:18px">
-      <h3 style="margin:0 0 12px">${room.icon} ${esc(room.name)} — רשימת משאלות</h3>
+      <h3 style="margin:0 0 12px">${room.icon} ${esc(room.name)} — ${t('rp_wishlist')}</h3>
       <div class="rm-form">
-        <input type="text" id="rmItemText" placeholder="מה צריך בחדר? (ספה, מנורה, שטיח…)" onkeydown="if(event.key==='Enter')Rooms.addItem()">
-        <input type="text" id="rmItemBy" placeholder="מי ביקש?" style="flex:1;min-width:100px">
-        <select id="rmItemPrio"><option value="high">🔴 חובה</option><option value="normal" selected>🔵 רגיל</option><option value="low">⚪ אם יוצא</option></select>
-        <button class="rm-btn" onclick="Rooms.addItem()">➕ הוסף</button>
+        <input type="text" id="rmItemText" placeholder="${t('rp_wish_ph')}" onkeydown="if(event.key==='Enter')Rooms.addItem()">
+        <input type="text" id="rmItemBy" placeholder="${t('rp_who_ph')}" style="flex:1;min-width:100px">
+        <select id="rmItemPrio"><option value="high">🔴 ${t('rp_must')}</option><option value="normal" selected>🔵 ${t('rp_normal')}</option><option value="low">⚪ ${t('rp_maybe')}</option></select>
+        <button class="rm-btn" onclick="Rooms.addItem()">➕ ${t('rp_add_wish')}</button>
       </div>
       <div class="rm-filters">
-        ${['all','open','done'].map(f => `<button class="rm-f${filter===f?' on':''}" onclick="Rooms.setFilter('${f}')">${f==='all'?'הכל':f==='open'?'פתוחים':'הושלמו'}</button>`).join('')}
+        ${['all','open','done'].map(f => `<button class="rm-f${filter===f?' on':''}" onclick="Rooms.setFilter('${f}')">${f==='all'?t('filter_all'):f==='open'?t('rp_open'):t('rp_done')}</button>`).join('')}
       </div>`;
-    if (!items.length) h += `<div class="rm-empty">אין פריטים עדיין — הוסיפו את המשאלה הראשונה 🌟</div>`;
+    if (!items.length) h += `<div class="rm-empty">${t('rp_empty_first')}</div>`;
     items.forEach(i => {
       h += `<div class="rm-item${i.done ? ' done' : ''}">
         <input type="checkbox" class="rm-check" ${i.done ? 'checked' : ''} onchange="Rooms.toggle(${i.id},this.checked)">
         <span class="rm-text">${esc(i.text)}</span>
         ${i.addedBy ? `<span class="rm-by">👤 ${esc(i.addedBy)}</span>` : ''}
-        <span class="rm-prio ${PRIO[i.priority] ? PRIO[i.priority].cls : 'rp-normal'}">${PRIO[i.priority] ? PRIO[i.priority].he : ''}</span>
+        <span class="rm-prio ${PRIO[i.priority] ? PRIO[i.priority].cls : 'rp-normal'}">${PRIO[i.priority] ? t(PRIO[i.priority].key) : ''}</span>
         <button class="rm-x" onclick="Rooms.delItem(${i.id})">🗑</button>
       </div>`;
     });
@@ -129,11 +129,11 @@ const Rooms = (() => {
   let pickedIcon = '🚪';
   function renderAddRoom() {
     return `<div class="rm-panel">
-      <h3 style="margin:0 0 10px">➕ הוסף חדר / קטגוריה</h3>
+      <h3 style="margin:0 0 10px">${t('rp_add_room_btn')}</h3>
       <div class="rm-form">
-        <input type="text" id="rmNewName" placeholder="שם החדר (החדר של גלי, החדר של נטע…)" onkeydown="if(event.key==='Enter')Rooms.addRoom()">
-        <input type="text" id="rmNewOwner" placeholder="של מי החדר? (רשות)" style="flex:1;min-width:110px">
-        <button class="rm-btn" onclick="Rooms.addRoom()">צור חדר</button>
+        <input type="text" id="rmNewName" placeholder="${t('rp_room_name_ph')}" onkeydown="if(event.key==='Enter')Rooms.addRoom()">
+        <input type="text" id="rmNewOwner" placeholder="${t('rp_owner_ph')}" style="flex:1;min-width:110px">
+        <button class="rm-btn" onclick="Rooms.addRoom()">${t('rp_create_room')}</button>
       </div>
       <div class="rm-iconpick" id="rmIconPick">
         ${ICONS.map(i => `<button class="${i === pickedIcon ? 'on' : ''}" onclick="Rooms.pickIcon('${i}',this)">${i}</button>`).join('')}
@@ -161,7 +161,7 @@ const Rooms = (() => {
 
   async function delRoom(id) {
     const st = roomStats(id);
-    if (st.total && !confirm(`למחוק את החדר וכל ${st.total} הפריטים שבו?`)) return;
+    if (st.total && !confirm(t('rp_confirm_del_room'))) return;
     await api('/api/rooms/' + id, 'DELETE');
     if (openRoomId === id) openRoomId = null;
     await load();
@@ -181,5 +181,5 @@ const Rooms = (() => {
   async function toggle(id, done) { await api('/api/room-items/' + id, 'PUT', { done }); await load(); }
   async function delItem(id) { await api('/api/room-items/' + id, 'DELETE'); await load(); }
 
-  return { load, open, setFilter, pickIcon, addRoom, delRoom, addItem, toggle, delItem };
+  return { load, render, open, setFilter, pickIcon, addRoom, delRoom, addItem, toggle, delItem };
 })();

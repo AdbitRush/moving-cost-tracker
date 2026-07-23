@@ -48,7 +48,10 @@ const I18N = {
     // rooms (planner)
     rp_add_room:'חדר חדש', rp_add_room_btn:'➕ הוסף חדר / קטגוריה', rp_done:'הושלמו', rp_new_room_name:'שם החדר',
     rp_who:'למי', rp_priority:'עדיפות', rp_must:'חובה', rp_normal:'רגיל', rp_maybe:'אם יוצא', rp_add_wish:'הוסף פריט',
-    rp_wish_ph:'מה צריך לחדר?', rp_empty:'אין עדיין פריטים לחדר הזה', rp_delete_room:'למחוק חדר?',
+    rp_wish_ph:'מה צריך בחדר? (ספה, מנורה, שטיח…)', rp_empty:'אין עדיין פריטים לחדר הזה', rp_delete_room:'למחוק חדר?',
+    rp_wishlist:'רשימת משאלות', rp_who_ph:'מי ביקש?', rp_open:'פתוחים', rp_room_name_ph:'שם החדר (החדר של גלי, החדר של נטע…)',
+    rp_owner_ph:'של מי החדר? (רשות)', rp_create_room:'צור חדר', rp_del_title:'מחק חדר',
+    rp_confirm_del_room:'למחוק את החדר וכל הפריטים שבו?', rp_empty_first:'אין פריטים עדיין — הוסיפו את המשאלה הראשונה 🌟',
     // toasts / misc
     toast_item_added:'פריט נוסף ✓', toast_saved:'נשמר ✓', toast_deleted:'נמחק', toast_loaded_server:'נטען מהשרת ✓',
     toast_saved_server:'נשמר לשרת ✓', toast_load_err:'שגיאה בטעינה: ', toast_enter_name:'הזן שם לפריט',
@@ -104,7 +107,10 @@ const I18N = {
     t_ikea:'🛒 IKEA Shopping', t_rooms:'🚪 Room Planner',
     rp_add_room:'New room', rp_add_room_btn:'➕ Add room / category', rp_done:'done', rp_new_room_name:'Room name',
     rp_who:'Who', rp_priority:'Priority', rp_must:'Must', rp_normal:'Normal', rp_maybe:'If possible', rp_add_wish:'Add item',
-    rp_wish_ph:'What does the room need?', rp_empty:'No items for this room yet', rp_delete_room:'Delete room?',
+    rp_wish_ph:'What does the room need? (sofa, lamp, rug…)', rp_empty:'No items for this room yet', rp_delete_room:'Delete room?',
+    rp_wishlist:'Wishlist', rp_who_ph:'Who asked?', rp_open:'Open', rp_room_name_ph:"Room name (Gali's room, Neta's room…)",
+    rp_owner_ph:'Whose room? (optional)', rp_create_room:'Create room', rp_del_title:'Delete room',
+    rp_confirm_del_room:'Delete this room and all its items?', rp_empty_first:'No items yet — add your first wish 🌟',
     toast_item_added:'Item added ✓', toast_saved:'Saved ✓', toast_deleted:'Deleted', toast_loaded_server:'Loaded from server ✓',
     toast_saved_server:'Saved to server ✓', toast_load_err:'Load error: ', toast_enter_name:'Enter an item name',
     toast_ikea_added:'items added to your list ✓', confirm_delete:'Delete?',
