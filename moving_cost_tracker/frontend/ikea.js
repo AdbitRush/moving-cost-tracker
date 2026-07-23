@@ -1,263 +1,307 @@
 // ikea.js — 🛒 קניות איקאה: curated IKEA Israel shopping list for the new home.
-// Live prices pulled from ikea.co.il on 2026-07-23 (IKEA SALE 1–29 July 2026).
-// Tick what you want → "הוסף נבחרים לפריטים שלי" pushes them into the expense tracker.
-// Both Rishon LeZion (Rishonim) and Netanya (Poleg) are full-line stores — every item is carried at both.
+// Furniture + lights: real photo, product link, live per-store stock (Netanya/Rishon),
+// and a W×H×D fit-finder ("enter the space you have → see what fits").
+// Prices/data from ikea.co.il (2026-07). Stock via IKEA availability API — undocumented, degrades to a store link.
+// See memory: ikea-il-data-integration (store 206=Netanya, 217=Rishon; client-id below).
 
 const Ikea = (() => {
-  const SALE_END = '29.07.2026';
+  const STORES = { '217': 'ראשון לציון', '206': 'נתניה' };
+  const AVAIL_CLIENT = 'b6c117e5-ae61-4ef5-b4cc-e0b1e37f0631';
+  const IKEA = 'https://www.ikea.com/il/he';
   const PICKS_KEY = 'mct-ikea-picks';
-  let picks = new Set();
+  const SPACE_KEY = 'mct-ikea-space';
+  const STORE_KEY = 'mct-ikea-store';
+  const SALE_END = '29.07.2026';
 
-  // room → one of ROOM_PRESETS in script.js
-  const SECTIONS = [
-    { icon: '🛏️', title: 'חדר שינה — ריהוט', room: 'חדר שינה ראשי', items: [
-      { sku:'SLATTUM',  name:'מסגרת מיטה מרופדת 160×200', desc:'אפור כהה, כולל בסיס מפסי עץ', price:795,  was:1100, tag:'משתלם' },
-      { sku:'BRIMNES',  name:'מיטה עם אחסון + ראש מיטה 160×200', desc:'4 מגירות ענק מתחת למיטה', price:1620, was:2220 },
-      { sku:'NEIDEN',   name:'מסגרת מיטה אורן מלא 140×200', desc:'המסגרת הזולה ביותר, זוגית', price:595 },
-      { sku:'VESTERÖY', name:'מזרן קפיצי כיס 160×200', desc:'קשיחות גבוהה, תמיכה טובה', price:1295, was:1695, tag:'מומלץ' },
-      { sku:'ÅBYGDA',   name:'מזרן ספוג 160×200', desc:'קצף זיכרון, מזרן פתיחה טוב', price:1100, was:1495 },
-      { sku:'LURÖY',    name:'בסיס מיטה מפסי עץ 160×200', desc:'אם המסגרת לא כוללת בסיס', price:200 },
-      { sku:'KLEPPSTAD',name:'ארון 2 דלתות', desc:'לבן, 79×176 — הארון הזול', price:450, was:595 },
-      { sku:'BRIMNES',  name:'ארון 3 דלתות', desc:'לבן, 117×190', price:795, was:1100 },
-      { sku:'PAX/FORSAND', name:'ארון PAX 100×201', desc:'ניתן להתאמה אישית (ידיות בנפרד)', price:1035 },
+  let picks = new Set();
+  let space = { w: 0, h: 0, d: 0 };
+  let store = '217';
+  let stock = {};          // stock[itemNo] = { '217': {msg,qty}, '206': {...} }
+  let stockLoaded = false;
+  let fitOnly = false;
+
+  // ── Furniture + lights dataset (w×d×h = external cm; wExt = extended width) ──
+  // img holds the IKEA CDN photo; product URL is derived from it + itemNo.
+  const FURN = [
+    { icon:'🚪', title:'ארונות בגדים', room:'חדר שינה ראשי', items:[
+      { sku:'KLEPPSTAD', name:'ארון 2 דלתות', price:450, was:595, itemNo:'80437234', w:79, d:55, h:176, tag:'הכי זול', img:'kleppstad-wardrobe-with-2-doors-white__0733324_pe748781' },
+      { sku:'KLEPPSTAD', name:'ארון 3 דלתות', price:595, was:845, itemNo:'00441758', w:117, d:55, h:176, img:'kleppstad-wardrobe-with-3-doors-white__0753594_pe748782' },
+      { sku:'BRIMNES', name:'ארון 2 דלתות', price:595, was:795, itemNo:'40400478', w:78, d:50, h:190, img:'brimnes-wardrobe-with-2-doors-white__0140624_pe300605' },
+      { sku:'BRIMNES', name:'ארון 3 דלתות', price:795, was:1100, itemNo:'40407922', w:117, d:50, h:190, img:'brimnes-wardrobe-with-3-doors-white__0176787_pe329567' },
+      { sku:'PAX/FORSAND', name:'ארון PAX (ידיות בנפרד)', price:1035, itemNo:'s79503017', w:100, d:60, h:201, img:'pax-forsand-wardrobe-white-white__1197811_pe903757' },
     ]},
-    { icon: '🛋️', title: 'סלון — ריהוט', room: 'סלון', items: [
-      { sku:'GLOSTAD',  name:'ספה דו-מושבית', desc:'אפור כהה — הספה הזולה', price:795, tag:'משתלם' },
-      { sku:'EKTORP',   name:'ספה תלת-מושבית', desc:'בז\', כיסוי כביס במכונה', price:1745, was:2545 },
-      { sku:'KIVIK',    name:'ספה דו-מושבית', desc:'עמוקה ונוחה מאוד', price:1635, was:2295 },
-      { sku:'KLIPPAN',  name:'ספה דו-מושבית', desc:'הקלאסיקה, כיסוי נשלף', price:1395 },
-      { sku:'BILLY',    name:'ארון ספרים 80×202', desc:'לבן, הכי נמכר בעולם', price:295, was:395 },
-      { sku:'BESTÅ',    name:'מערכת אחסון לטלוויזיה 60×202', desc:'לבן, עם דלתות', price:445, was:585 },
+    { icon:'🛏️', title:'מיטות', room:'חדר שינה ראשי', items:[
+      { sku:'SLATTUM', name:'מסגרת מיטה מרופדת 160×200', desc:'כולל בסיס מפסי עץ', price:795, was:1100, itemNo:'40571248', w:166, d:211, h:86, tag:'משתלם', img:'slattum-upholstered-bed-frame-vissle-dark-grey__1259335_pe926650' },
+      { sku:'NEIDEN', name:'מסגרת מיטה אורן 140×200', price:595, itemNo:'70395239', w:147, d:205, h:70, img:'neiden-bed-frame-pine__0749131_pe745500' },
     ]},
-    { icon: '🍽️', title: 'פינת אוכל', room: 'סלון', items: [
-      { sku:'HÄGERNÄS', name:'שולחן + 4 כיסאות', desc:'שחור, סט שלם בקופסה', price:995, tag:'הכי משתלם' },
-      { sku:'PINNTORP', name:'שולחן + 4 כיסאות', desc:'עץ מלא, מראה כפרי', price:1630 },
-      { sku:'VIHALS',   name:'שולחן אוכל נפתח', desc:'לבן, 120→180 (כיסאות בנפרד)', price:395, was:545 },
-      { sku:'NORDVIKEN',name:'שולחן נפתח ל-4/6 סועדים', desc:'מראה עתיק, 152→223', price:1295, was:1995 },
+    { icon:'🛋️', title:'ספות', room:'סלון', items:[
+      { sku:'GLOSTAD', name:'ספה דו-מושבית', price:795, itemNo:'50489012', w:155, d:72, h:74, tag:'הכי זולה', img:'glostad-2-seat-sofa-knisa-dark-grey__1577178_pe1033002' },
+      { sku:'GLOSTAD', name:'ספה תלת-מושבית', price:995, itemNo:'40573285', w:197, d:72, h:74, img:'glostad-3-seat-sofa-knisa-dark-grey__1234948_pe917261' },
+      { sku:'KLIPPAN', name:'ספה דו-מושבית', desc:'כיסוי נשלף', price:1395, itemNo:'s79010614', w:180, d:88, h:66, img:'klippan-2-seat-sofa-vissle-grey__1576907_pe1032801' },
+      { sku:'EKTORP', name:'ספה דו-מושבית', desc:'כיסוי כביס', price:1495, was:2195, itemNo:'s79509019', w:179, d:88, h:88, img:'ektorp-2-seat-sofa-karlshov-beige-multicolour__1194837_pe902083' },
+      { sku:'EKTORP', name:'ספה תלת-מושבית', desc:'כיסוי כביס', price:1745, was:2545, itemNo:'s99509004', w:218, d:88, h:88, img:'ektorp-3-seat-sofa-karlshov-beige-multicolour__1194859_pe902109' },
+      { sku:'KIVIK', name:'ספה דו-מושבית', desc:'עמוקה ונוחה', price:1635, was:2295, itemNo:'s19482819', w:190, d:95, h:83, img:'kivik-2-seat-sofa-tresund-light-beige__1577606_pe1033354' },
     ]},
-    { icon: '🍳', title: 'מטבח — כלים', room: 'מטבח', items: [
-      { sku:'IKEA 365+', name:'סט סירים 6 חלקים', desc:'פלדת אל-חלד, לכל הכיריים', price:150, was:195, tag:'התחלה' },
-      { sku:'IKEA 365+', name:'סט סירים 9 חלקים', desc:'יותר גדלים + סוטאז\'', price:295, was:375 },
-      { sku:'HEMKOMST',  name:'סט סירים + מחבת 7 חלקים', desc:'פלדת אל-חלד', price:350, was:450 },
-      { sku:'IKEA 365+', name:'מחבת נון-סטיק 24 ס"מ', desc:'ציפוי מונע הידבקות', price:49, was:69 },
-      { sku:'VARDAGEN',  name:'מחבת ברזל יצוק 28 ס"מ', desc:'לצלייה, מחזיק שנים', price:175 },
-      { sku:'IKEA 365+', name:'סט סכו"ם 24 חלקים', desc:'ל-6 סועדים', price:125 },
-      { sku:'IKEA 365+', name:'סט סכינים 3 יחידות', desc:'שף, ירקות, קילוף', price:175 },
-      { sku:'IKEA 365+', name:'סט כלים (צלחות) 18 חלקים', desc:'פורצלן עמיד, ל-6', price:145, was:225 },
-      { sku:'FÄRGKLAR',  name:'סט כלים 18 חלקים', desc:'צלחות + קערות, מט צבעוני', price:125, was:169 },
-      { sku:'IKEA 365+', name:'כוסות זכוכית 6 יח\'', desc:'20 סל"צ', price:25 },
-      { sku:'VARDAGEN',  name:'כוסות זכוכית 6 יח\'', desc:'43 סל"צ', price:35 },
+    { icon:'🍽️', title:'שולחנות אוכל', room:'סלון', items:[
+      { sku:'VIHALS', name:'שולחן נפתח', desc:'נפתח ל-180 ס"מ', price:395, was:545, itemNo:'20589777', w:120, wExt:180, d:70, h:74, img:'vihals-extendable-table-white__1370472_pe958745' },
+      { sku:'LISABO', name:'שולחן', desc:'פורניר מילה', price:695, was:895, itemNo:'70294339', w:140, d:78, h:74, img:'lisabo-table-ash-veneer__0737105_pe740883' },
+      { sku:'PINNTORP', name:'שולחן + 4 כיסאות', price:1630, itemNo:'s89564449', w:125, d:75, h:75, tag:'סט שלם', img:'pinntorp-table-and-4-chairs-light-brown-stained-white-stained-light-brown-stained__1301604_pe937493' },
     ]},
-    { icon: '🌙', title: 'מצעים וטקסטיל למיטה', room: 'חדר שינה ראשי', items: [
-      { sku:'ÄNGSLILJA', name:'ציפה + 2 ציפיות', desc:'כותנה, 200×220', price:95, was:145, tag:'משתלם' },
-      { sku:'DOFTAKLEJA',name:'ציפה + 2 ציפיות', desc:'כותנה, דוגמה', price:145 },
-      { sku:'SKOGSFRÄKEN',name:'שמיכת פוך בינונית 150×200', desc:'לכל השנה', price:175 },
-      { sku:'SMÅSPORRE', name:'שמיכת פוך 150×200', desc:'דרגת חום בינונית', price:59, was:95 },
-      { sku:'DVALA',     name:'סדין גומי 160×200', desc:'כותנה', price:55 },
-      { sku:'ULLVIDE',   name:'סדין גומי 160×200', desc:'סאטן רך', price:75 },
+    { icon:'📺', title:'אחסון וסלון', room:'סלון', items:[
+      { sku:'BESTÅ', name:'יחידת טלוויזיה', price:445, was:585, itemNo:'70299879', w:180, d:40, h:64, img:'besta-tv-bench-white__0377001_pe516832' },
+      { sku:'BILLY', name:'ארון ספרים 80 ס"מ', price:295, was:395, itemNo:'00263850', w:80, d:28, h:202, tag:'קלאסיקה', img:'billy-bookcase-white__0625599_pe692385' },
+      { sku:'BILLY', name:'ארון ספרים 40 ס"מ', price:225, was:295, itemNo:'50263838', w:40, d:28, h:202, img:'billy-bookcase-white__0644260_pe702536' },
     ]},
-    { icon: '🪟', title: 'וילונות ושטיחים', room: 'סלון', items: [
-      { sku:'BENGTA',      name:'וילון האפלה (יחידה)', desc:'האפלה מלאה, 210×300', price:65 },
-      { sku:'HÄLLEBRÄCKA', name:'וילון שקוף (זוג)', desc:'לבן, 145×300', price:125, was:175 },
-      { sku:'MÄSTERROT',   name:'וילון (זוג)', desc:'סינון אור קל, 145×300', price:125 },
-      { sku:'TIPHEDE',     name:'שטיח אריגה שטוחה 120×180', desc:'טבעי/שחור', price:69, tag:'זול ויפה' },
-      { sku:'ÄRENDE',      name:'שטיח שאגי 120×180', desc:'סיבים ארוכים, רך', price:125, was:175 },
-      { sku:'LOHALS',      name:'שטיח 160×230', desc:'יוטה טבעית, לסלון', price:595 },
-    ]},
-    { icon: '💡', title: 'תאורה', room: 'סלון', note:'הנורות נמכרות בנפרד', items: [
-      { sku:'BARLAST',  name:'מנורה עומדת 150 ס"מ', desc:'שחור/לבן — הזולה', price:49 },
-      { sku:'TÅGARP',   name:'מנורה עומדת (תאורה עילית)', desc:'שחור/לבן', price:69 },
-      { sku:'ÅRSTID',   name:'מנורה עומדת פליז', desc:'קלאסית ומחמיאה', price:195, was:275 },
-      { sku:'HEKTAR',   name:'מנורה עומדת', desc:'אפור כהה, תעשייתית', price:295 },
-      { sku:'RÖDFLIK',  name:'מנורת קריאה עומדת', desc:'לצד הספה/הכורסה', price:125, was:195 },
-    ]},
-    { icon: '🛁', title: 'חדר אמבטיה — מגבות', room: 'חדר אמבטיה', items: [
-      { sku:'VÅGSJÖN', name:'מגבת רחצה 70×140', desc:'כותנה, מבחר צבעים', price:19, was:25, tag:'משתלם' },
-      { sku:'GULVIAL', name:'מגבת רחצה 100×150', desc:'גדולה ורכה', price:49, was:75 },
-      { sku:'BROKGLIM',name:'מגבת רחצה 100×150', desc:'איכות מלון', price:89 },
-      { sku:'VÅGSJÖN', name:'מגבת ידיים 40×70', desc:'לכיור', price:7 },
+    { icon:'💡', title:'תאורה — מנורות עומדות', room:'סלון', note:'הנורות נמכרות בנפרד', items:[
+      { sku:'BARLAST', name:'מנורה עומדת', price:49, itemNo:'10430368', w:25, d:25, h:150, tag:'הכי זולה', img:'barlast-floor-lamp-black-white__0957676_pe805130' },
+      { sku:'TÅGARP', name:'מנורה עומדת (תאורה עילית)', price:69, itemNo:'20404095', w:28, d:20, h:175, img:'tagarp-floor-uplighter-black-white__0810840_pe771436' },
+      { sku:'LAUTERS', name:'מנורה עומדת עץ מילה', price:195, was:295, itemNo:'30405042', w:28, d:28, h:141, img:'lauters-floor-lamp-ash-white__0663863_pe712536' },
+      { sku:'ÅRSTID', name:'מנורה עומדת פליז', price:195, was:275, itemNo:'00321317', w:28, d:28, h:156, img:'arstid-floor-lamp-brass-white__0390610_pe566328' },
+      { sku:'HEKTAR', name:'מנורה עומדת', desc:'תעשייתית', price:295, itemNo:'00215307', w:30, d:30, h:181, img:'hektar-floor-lamp-dark-grey__0149974_pe308131' },
     ]},
   ];
 
-  // flat lookup by key
-  function keyOf(sec, it) { return sec.title + '::' + it.sku + '::' + it.name; }
+  // ── Consumables (simple cards, no fit/photo yet — coming next) ──
+  const CONSUM = [
+    { icon:'🍳', title:'מטבח — כלים', room:'מטבח', items:[
+      { sku:'IKEA 365+', name:'סט סירים 9 חלקים', price:295, was:375 },
+      { sku:'HEMKOMST', name:'סט סירים + מחבת 7 חלקים', price:350, was:450 },
+      { sku:'IKEA 365+', name:'סט סכו"ם 24 חלקים', price:125 },
+      { sku:'IKEA 365+', name:'סט כלים (צלחות) 18 חלקים', price:145, was:225 },
+    ]},
+    { icon:'🌙', title:'מצעים', room:'חדר שינה ראשי', items:[
+      { sku:'ÄNGSLILJA', name:'ציפה + 2 ציפיות', price:95, was:145 },
+      { sku:'SKOGSFRÄKEN', name:'שמיכת פוך 150×200', price:175 },
+      { sku:'DVALA', name:'סדין גומי 160×200', price:55 },
+    ]},
+    { icon:'🛁', title:'מגבות', room:'חדר אמבטיה', items:[
+      { sku:'VÅGSJÖN', name:'מגבת רחצה 70×140', price:19, was:25 },
+      { sku:'GULVIAL', name:'מגבת רחצה 100×150', price:49, was:75 },
+    ]},
+  ];
 
-  function fmt(n) { return '₪' + Number(n).toLocaleString('en-US'); }
+  // ── helpers ──
+  function fmt(n){ return '₪' + Number(n).toLocaleString('en-US'); }
+  function esc(t){ return String(t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+  function photo(it){ return it.img ? IKEA+'/images/products/'+it.img+'_s5.jpg' : ''; }
+  function prodUrl(it){ const slug = it.img ? it.img.split('__')[0] : ''; return slug ? IKEA+'/p/'+slug+'-'+it.itemNo+'/' : IKEA+'/search/?q='+encodeURIComponent(it.sku); }
+  function keyOf(sec,it){ return sec.title+'::'+it.sku+'::'+it.name; }
+  function allItems(){ const a=[]; FURN.concat(CONSUM).forEach(s=>s.items.forEach(it=>a.push({sec:s,it}))); return a; }
 
-  function loadPicks() {
-    try { picks = new Set(JSON.parse(localStorage.getItem(PICKS_KEY) || '[]')); }
-    catch (e) { picks = new Set(); }
+  function loadState(){
+    try{ picks=new Set(JSON.parse(localStorage.getItem(PICKS_KEY)||'[]')); }catch(e){ picks=new Set(); }
+    try{ space=Object.assign({w:0,h:0,d:0}, JSON.parse(localStorage.getItem(SPACE_KEY)||'{}')); }catch(e){}
+    store = localStorage.getItem(STORE_KEY) || '217';
+    if(!STORES[store]) store='217';
   }
-  function savePicks() { localStorage.setItem(PICKS_KEY, JSON.stringify([...picks])); }
+  const saveP=()=>localStorage.setItem(PICKS_KEY,JSON.stringify([...picks]));
+  const saveS=()=>localStorage.setItem(SPACE_KEY,JSON.stringify(space));
 
-  function esc(t) { return String(t).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
-
-  // ── selection totals ────────────────────────────────────────────────────────
-  function selection() {
-    const chosen = [];
-    SECTIONS.forEach(sec => sec.items.forEach(it => {
-      if (picks.has(keyOf(sec, it))) chosen.push({ sec, it });
-    }));
-    return chosen;
-  }
-
-  function toggle(key, checked) {
-    if (checked) picks.add(key); else picks.delete(key);
-    savePicks();
-    updateBar();
-    const row = document.querySelector('.ik-row[data-key="' + cssEsc(key) + '"]');
-    if (row) row.classList.toggle('ik-on', checked);
-  }
-  function cssEsc(s) { return s.replace(/"/g, '\\"'); }
-
-  function updateBar() {
-    const chosen = selection();
-    const sum = chosen.reduce((a, c) => a + c.it.price, 0);
-    const cEl = document.getElementById('ikCount');
-    const tEl = document.getElementById('ikTotal');
-    const btn = document.getElementById('ikAddBtn');
-    if (cEl) cEl.textContent = chosen.length;
-    if (tEl) tEl.textContent = fmt(sum);
-    if (btn) btn.disabled = chosen.length === 0;
-  }
-
-  function clearPicks() {
-    picks.clear(); savePicks();
-    document.querySelectorAll('.ik-row').forEach(r => r.classList.remove('ik-on'));
-    document.querySelectorAll('.ik-row input').forEach(c => { c.checked = false; });
-    updateBar();
+  // ── fit check ──
+  function fit(it){
+    if(!it.w) return null;               // non-sized item
+    if(!space.w && !space.h && !space.d) return null; // no space entered
+    const bad=[];
+    if(space.w && it.w>space.w) bad.push('רוחב');
+    if(space.d && it.d>space.d) bad.push('עומק');
+    if(space.h && it.h>space.h) bad.push('גובה');
+    return { ok:bad.length===0, bad };
   }
 
-  // ── push chosen items into the expense tracker (script.js globals) ───────────
-  function addSelected() {
-    const chosen = selection();
-    if (!chosen.length) return;
-    if (typeof items === 'undefined' || typeof nextId !== 'function') {
-      alert('לא ניתן להוסיף כרגע'); return;
-    }
-    let base = nextId(items);
-    chosen.forEach(({ sec, it }, i) => {
-      items.push({
-        id: base + i,
-        name: it.sku + ' — ' + it.name,
-        price: it.price,
-        currency: 'ILS',
-        category_id: null,
-        room: sec.room,
-        notes: 'IKEA' + (it.was ? ' · מחיר סייל (רגיל ' + fmt(it.was) + ')' : '') + (it.desc ? ' · ' + it.desc : ''),
-        status: 'pending',
-        model: it.sku,
-        contact_name: '', contact_phone: '', appointment: '',
-        selected: false, quotes: []
+  // ── live stock ──
+  async function loadStock(){
+    const nums=[]; FURN.forEach(s=>s.items.forEach(it=>{ if(/^\d+$/.test(it.itemNo)) nums.push(it.itemNo); }));
+    try{
+      const res=await fetch('https://api.ingka.ikea.com/cia/availabilities/ru/il?itemNos='+nums.join(',')+'&expand=StoresList',
+        {headers:{'x-client-id':AVAIL_CLIENT,'Accept':'application/json;version=2'}});
+      if(!res.ok) throw new Error(res.status);
+      const j=await res.json();
+      (j.availabilities||[]).forEach(a=>{
+        const item=a.itemKey&&a.itemKey.itemNo, code=a.classUnitKey&&a.classUnitKey.classUnitCode;
+        if(!item||!STORES[code]) return;
+        const cc=a.buyingOption&&a.buyingOption.cashCarry&&a.buyingOption.cashCarry.availability;
+        const msg=cc&&cc.probability&&cc.probability.thisDay&&cc.probability.thisDay.messageType;
+        (stock[item]=stock[item]||{})[code]={ msg, qty: cc&&cc.quantity };
       });
-    });
-    saveItems();
-    const n = chosen.length;
-    clearPicks();
-    if (typeof renderItemsTable === 'function') renderItemsTable();
-    if (typeof updateSummary === 'function') updateSummary();
-    if (typeof toast === 'function') toast(n + ' פריטים נוספו לרשימת הפריטים ✓', 'success');
-    if (typeof showTab === 'function') showTab('items');
+    }catch(e){ /* graceful: cards show a store link */ }
+    stockLoaded=true;
   }
 
-  // ── render ──────────────────────────────────────────────────────────────────
-  function render() {
-    const root = document.getElementById('ikeaRoot');
-    if (!root) return;
-    loadPicks();
+  function stockBadge(it){
+    if(!/^\d+$/.test(it.itemNo)) return '<a class="ik-stocklink" href="'+prodUrl(it)+'" target="_blank" rel="noopener">בדקו בחנות ↗</a>';
+    if(!stockLoaded) return '<span class="ik-stk ik-stk-load">בודק מלאי…</span>';
+    const s=stock[it.itemNo]&&stock[it.itemNo][store];
+    if(!s||!s.msg) return '<a class="ik-stocklink" href="'+prodUrl(it)+'" target="_blank" rel="noopener">בדקו בחנות ↗</a>';
+    if(s.msg==='HIGH_IN_STOCK') return '<span class="ik-stk ik-stk-ok">✓ במלאי'+(s.qty?' ('+s.qty+')':'')+'</span>';
+    if(s.msg==='LOW_IN_STOCK')  return '<span class="ik-stk ik-stk-low">אוזל'+(s.qty?' ('+s.qty+')':'')+'</span>';
+    return '<span class="ik-stk ik-stk-out">אזל ב'+STORES[store]+'</span>';
+  }
 
-    const sectionsHtml = SECTIONS.map(sec => {
-      const rows = sec.items.map(it => {
-        const key = keyOf(sec, it);
-        const on = picks.has(key);
-        const priceHtml = (it.was ? '<span class="ik-was">' + fmt(it.was) + '</span>' : '') +
-          '<span class="ik-now">' + fmt(it.price) + '</span>' +
-          (it.was ? '<span class="ik-badge">מבצע</span>' : '');
-        const tag = it.tag ? '<span class="ik-tag">' + esc(it.tag) + '</span>' : '';
-        return '<label class="ik-row' + (on ? ' ik-on' : '') + '" data-key="' + esc(key) + '">' +
-            '<input type="checkbox" ' + (on ? 'checked' : '') +
-              ' onchange="Ikea.toggle(this.closest(\'.ik-row\').dataset.key, this.checked)">' +
-            '<span class="ik-info"><span class="ik-name">' + esc(it.sku) + ' · ' + esc(it.name) + tag + '</span>' +
-              '<span class="ik-desc">' + esc(it.desc || '') + '</span></span>' +
-            '<span class="ik-price">' + priceHtml + '</span>' +
-          '</label>';
-      }).join('');
-      const note = sec.note ? '<span class="ik-secnote">' + esc(sec.note) + '</span>' : '';
-      return '<div class="ik-sec"><div class="ik-sechead"><span class="ik-secicon">' + sec.icon +
-        '</span><h3>' + esc(sec.title) + '</h3><span class="ik-secroom">' + esc(sec.room) + '</span>' + note +
-        '</div><div class="ik-list">' + rows + '</div></div>';
-    }).join('');
+  // ── selection ──
+  function selection(){ const c=[]; allItems().forEach(x=>{ if(picks.has(keyOf(x.sec,x.it))) c.push(x); }); return c; }
+  function updateBar(){
+    const c=selection(), sum=c.reduce((a,x)=>a+x.it.price,0);
+    const el=id=>document.getElementById(id);
+    if(el('ikCount')) el('ikCount').textContent=c.length;
+    if(el('ikTotal')) el('ikTotal').textContent=fmt(sum);
+    if(el('ikAddBtn')) el('ikAddBtn').disabled=c.length===0;
+  }
 
-    root.innerHTML = '<style>' + STYLE + '</style>' +
-      '<div class="ik-hero">' +
-        '<div class="ik-hero-top"><span class="ik-logo">IKEA</span>' +
-          '<span class="ik-hero-title">רשימת קניות לבית החדש</span></div>' +
-        '<p class="ik-hero-sub">מחירים עדכניים מ-ikea.co.il · סמנו מה שאתם רוצים והוסיפו ישירות לרשימת הפריטים והתקציב.</p>' +
-        '<div class="ik-sale">🔖 מבצע IKEA SALE — המחירים המחוקים בתוקף עד <b>' + SALE_END + '</b></div>' +
-        '<div class="ik-stores">📍 זמין גם בראשון לציון (הראשונים) וגם בנתניה (פולג) — שתיהן חנויות מלאות עם כל הפריטים.</div>' +
-      '</div>' +
-      sectionsHtml +
-      '<div style="height:80px"></div>' +
-      '<div class="ik-bar">' +
-        '<div class="ik-bar-info"><span class="ik-bar-lbl"><span id="ikCount">0</span> פריטים נבחרו</span>' +
-          '<span class="ik-bar-tot" id="ikTotal">₪0</span></div>' +
-        '<div class="ik-bar-actions">' +
-          '<button class="ik-btn ghost" onclick="Ikea.clear()">נקה</button>' +
-          '<button class="ik-btn" id="ikAddBtn" onclick="Ikea.add()">➕ הוסף נבחרים לפריטים שלי</button>' +
-        '</div>' +
-      '</div>';
+  // ── public actions ──
+  function toggle(key,on){ if(on)picks.add(key);else picks.delete(key); saveP(); updateBar();
+    const row=document.querySelector('.ik-card[data-key="'+key.replace(/"/g,'\\"')+'"]'); if(row) row.classList.toggle('ik-on',on); }
+  function setStore(code){ if(!STORES[code])return; store=code; localStorage.setItem(STORE_KEY,code); render(); }
+  function setSpace(dim,val){ space[dim]=Math.max(0,parseInt(val,10)||0); saveS(); renderCards(); }
+  function toggleFitOnly(v){ fitOnly=v; renderCards(); }
+  function clearPicks(){ picks.clear(); saveP(); document.querySelectorAll('.ik-card.ik-on').forEach(r=>r.classList.remove('ik-on')); document.querySelectorAll('.ik-card input').forEach(c=>c.checked=false); updateBar(); }
 
+  function addSelected(){
+    const c=selection(); if(!c.length) return;
+    if(typeof items==='undefined'||typeof nextId!=='function'){ alert('לא ניתן להוסיף כרגע'); return; }
+    let base=nextId(items);
+    c.forEach(({sec,it},i)=>{
+      const dims=it.w?(' · '+it.w+'×'+it.d+'×'+it.h+' ס"מ'):'';
+      items.push({ id:base+i, name:it.sku+' — '+it.name, price:it.price, currency:'ILS', category_id:null, room:sec.room,
+        notes:'IKEA'+(it.was?' · מחיר סייל (רגיל '+fmt(it.was)+')':'')+dims, status:'pending', model:it.sku,
+        contact_name:'', contact_phone:'', appointment:'', selected:false, quotes:[] });
+    });
+    saveItems(); const n=c.length; clearPicks();
+    if(typeof renderItemsTable==='function') renderItemsTable();
+    if(typeof updateSummary==='function') updateSummary();
+    if(typeof toast==='function') toast(n+' פריטים נוספו לרשימת הפריטים ✓','success');
+    if(typeof showTab==='function') showTab('items');
+  }
+
+  // ── render one card ──
+  function card(sec,it){
+    const key=keyOf(sec,it), on=picks.has(key), f=fit(it);
+    if(fitOnly && f && !f.ok) return '';
+    const priceHtml=(it.was?'<span class="ik-was">'+fmt(it.was)+'</span>':'')+'<span class="ik-now">'+fmt(it.price)+'</span>'+(it.was?'<span class="ik-badge">מבצע</span>':'');
+    const tag=it.tag?'<span class="ik-tag">'+esc(it.tag)+'</span>':'';
+    const dimStr=it.w?('<span class="ik-dim">'+it.w+(it.wExt?('→'+it.wExt):'')+'×'+it.d+'×'+it.h+' ס"מ</span>'):'';
+    let fitHtml='';
+    if(f) fitHtml=f.ok?'<span class="ik-fit ik-fit-ok">מתאים למקום ✓</span>'
+                     :'<span class="ik-fit ik-fit-no">גדול מדי ב'+f.bad.join(', ')+'</span>';
+    const ph=photo(it);
+    const thumb=ph?'<img class="ik-photo" src="'+ph+'" alt="" loading="lazy">':'<div class="ik-photo ik-nophoto">🛒</div>';
+    return '<label class="ik-card'+(on?' ik-on':'')+(f&&!f.ok?' ik-toobig':'')+'" data-key="'+esc(key)+'">'
+      +'<input type="checkbox" '+(on?'checked':'')+' onchange="Ikea.toggle(this.closest(\'.ik-card\').dataset.key,this.checked)">'
+      +thumb
+      +'<div class="ik-body"><div class="ik-nm">'+esc(it.sku)+' · '+esc(it.name)+tag+'</div>'
+      +(it.desc?'<div class="ik-desc">'+esc(it.desc)+'</div>':'')
+      +'<div class="ik-meta">'+dimStr+fitHtml+'</div>'
+      +'<div class="ik-foot">'+stockBadge(it)+'<a class="ik-plink" href="'+prodUrl(it)+'" target="_blank" rel="noopener">דף המוצר ↗</a></div></div>'
+      +'<div class="ik-price">'+priceHtml+'</div></label>';
+  }
+
+  function sectionHtml(sec,fitSec){
+    const rows=sec.items.map(it=>card(sec,it)).join('');
+    if(!rows) return '';
+    const note=sec.note?'<span class="ik-secnote">'+esc(sec.note)+'</span>':'';
+    return '<div class="ik-sec"><div class="ik-sechead"><span class="ik-secicon">'+sec.icon+'</span><h3>'+esc(sec.title)+'</h3>'
+      +'<span class="ik-secroom">'+esc(sec.room)+'</span>'+note+'</div><div class="ik-grid">'+rows+'</div></div>';
+  }
+
+  function renderCards(){
+    const host=document.getElementById('ikCards'); if(!host) return;
+    host.innerHTML = FURN.map(s=>sectionHtml(s,true)).join('')
+      + '<div class="ik-divider">מוצרים נוספים (תמונות ומלאי בקרוב)</div>'
+      + CONSUM.map(s=>sectionHtml(s,false)).join('');
     updateBar();
+  }
+
+  // ── full render ──
+  function render(){
+    const root=document.getElementById('ikeaRoot'); if(!root) return;
+    loadState();
+    const sBtn=(c)=>'<button class="ik-storebtn'+(store===c?' on':'')+'" onclick="Ikea.store(\''+c+'\')">'+STORES[c]+'</button>';
+    root.innerHTML='<style>'+STYLE+'</style>'
+      +'<div class="ik-hero"><div class="ik-hero-top"><span class="ik-logo">IKEA</span><span class="ik-hero-title">רשימת קניות לבית החדש</span></div>'
+      +'<p class="ik-hero-sub">רהיטים ותאורה עם תמונה, קישור, מלאי חי בחנות, ובדיקת התאמה למידות שלכם. סמנו והוסיפו לרשימת הפריטים.</p>'
+      +'<div class="ik-sale">🔖 מבצע IKEA SALE — המחירים המחוקים בתוקף עד <b>'+SALE_END+'</b></div></div>'
+      // controls
+      +'<div class="ik-controls">'
+        +'<div class="ik-ctl"><span class="ik-ctl-lbl">🏪 מלאי בחנות</span><div class="ik-stores">'+sBtn('217')+sBtn('206')+'</div></div>'
+        +'<div class="ik-ctl"><span class="ik-ctl-lbl">📐 המקום שיש לי (ס"מ)</span><div class="ik-space">'
+          +'<label>רוחב<input type="number" min="0" placeholder="0" value="'+(space.w||'')+'" oninput="Ikea.space(\'w\',this.value)"></label>'
+          +'<label>גובה<input type="number" min="0" placeholder="0" value="'+(space.h||'')+'" oninput="Ikea.space(\'h\',this.value)"></label>'
+          +'<label>עומק<input type="number" min="0" placeholder="0" value="'+(space.d||'')+'" oninput="Ikea.space(\'d\',this.value)"></label>'
+        +'</div></div>'
+        +'<label class="ik-fitonly"><input type="checkbox" onchange="Ikea.fitOnly(this.checked)"> הצג רק מה שמתאים</label>'
+      +'</div>'
+      +'<div id="ikCards"></div>'
+      +'<div style="height:80px"></div>'
+      +'<div class="ik-bar"><div class="ik-bar-info"><span class="ik-bar-lbl"><span id="ikCount">0</span> פריטים נבחרו</span>'
+        +'<span class="ik-bar-tot" id="ikTotal">₪0</span></div><div class="ik-bar-actions">'
+        +'<button class="ik-btn ghost" onclick="Ikea.clear()">נקה</button>'
+        +'<button class="ik-btn" id="ikAddBtn" onclick="Ikea.add()">➕ הוסף נבחרים לפריטים שלי</button></div></div>';
+    renderCards();
+    if(!stockLoaded) loadStock().then(()=>renderCards());
   }
 
   const STYLE = `
     #ikeaRoot{padding-bottom:20px}
-    .ik-hero{background:linear-gradient(135deg,#0058A3,#00437c);color:#fff;border-radius:var(--radius,14px);
-      padding:20px 22px;margin-bottom:18px;box-shadow:var(--shadow)}
+    .ik-hero{background:linear-gradient(135deg,#0058A3,#00437c);color:#fff;border-radius:var(--radius,14px);padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
     .ik-hero-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-    .ik-logo{background:#FFDB00;color:#0058A3;font-weight:800;letter-spacing:.02em;padding:3px 10px;border-radius:6px;font-size:1.1rem}
+    .ik-logo{background:#FFDB00;color:#0058A3;font-weight:800;padding:3px 10px;border-radius:6px;font-size:1.1rem}
     .ik-hero-title{font-size:1.3rem;font-weight:800}
-    .ik-hero-sub{margin:10px 0 0;color:#dcebf8;font-size:.9rem;max-width:70ch;line-height:1.5}
-    .ik-sale{margin-top:12px;background:#FFDB00;color:#12233a;border-radius:8px;padding:8px 12px;font-weight:700;font-size:.85rem;display:inline-block}
-    .ik-stores{margin-top:8px;color:#cfe4f6;font-size:.82rem}
-    .ik-sec{background:var(--surface,#fff);border:1px solid var(--border,#e5ddd4);border-radius:var(--radius,14px);
-      margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
-    .ik-sechead{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border,#e5ddd4);
-      background:var(--surface2,#f7f4f0);flex-wrap:wrap}
-    .ik-secicon{font-size:1.3rem}
-    .ik-sechead h3{font-size:1.02rem;font-weight:800;color:var(--text,#1c1917);margin:0}
-    .ik-secroom{font-size:.72rem;font-weight:700;color:var(--accent,#d4673a);background:var(--accent-light,#fdf0ea);
-      padding:2px 9px;border-radius:20px}
+    .ik-hero-sub{margin:10px 0 0;color:#dcebf8;font-size:.9rem;max-width:72ch;line-height:1.5}
+    .ik-sale{margin-top:12px;background:#FFDB00;color:#12233a;border-radius:8px;padding:7px 12px;font-weight:700;font-size:.83rem;display:inline-block}
+    .ik-controls{background:var(--surface,#fff);border:1px solid var(--border,#e5ddd4);border-radius:var(--radius,14px);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end}
+    .ik-ctl-lbl{display:block;font-size:.75rem;font-weight:700;color:var(--text-muted,#78716c);margin-bottom:6px}
+    .ik-stores{display:flex;gap:6px}
+    .ik-storebtn{background:var(--surface2,#f7f4f0);border:1px solid var(--border,#e5ddd4);color:var(--text,#1c1917);border-radius:8px;padding:8px 14px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:inherit}
+    .ik-storebtn.on{background:var(--accent,#d4673a);color:#fff;border-color:var(--accent,#d4673a)}
+    .ik-space{display:flex;gap:8px}
+    .ik-space label{display:flex;flex-direction:column;font-size:.68rem;color:var(--text-muted,#78716c);gap:3px}
+    .ik-space input{width:74px;padding:7px 8px;border:1px solid var(--border,#e5ddd4);border-radius:8px;font-family:inherit;font-size:.9rem;background:var(--surface,#fff);color:var(--text,#1c1917)}
+    .ik-fitonly{display:flex;align-items:center;gap:7px;font-size:.83rem;font-weight:600;color:var(--text,#1c1917);cursor:pointer}
+    .ik-fitonly input{width:17px;height:17px;accent-color:var(--accent,#d4673a)}
+    .ik-sec{margin-bottom:16px}
+    .ik-sechead{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+    .ik-secicon{font-size:1.25rem}
+    .ik-sechead h3{font-size:1.05rem;font-weight:800;color:var(--text,#1c1917);margin:0}
+    .ik-secroom{font-size:.7rem;font-weight:700;color:var(--accent,#d4673a);background:var(--accent-light,#fdf0ea);padding:2px 9px;border-radius:20px}
     .ik-secnote{font-size:.72rem;color:var(--text-muted,#78716c)}
-    .ik-list{display:flex;flex-direction:column}
-    .ik-row{display:grid;grid-template-columns:24px 1fr auto;gap:13px;align-items:center;padding:12px 16px;
-      border-top:1px solid var(--border,#e5ddd4);cursor:pointer;transition:background .12s}
-    .ik-row:first-child{border-top:none}
-    .ik-row:hover{background:var(--surface2,#f7f4f0)}
-    .ik-row.ik-on{background:var(--accent-light,#fdf0ea)}
-    .ik-row input{width:19px;height:19px;accent-color:var(--accent,#d4673a);cursor:pointer;margin:0}
-    .ik-info{display:flex;flex-direction:column;min-width:0}
-    .ik-name{font-weight:700;font-size:.93rem;color:var(--text,#1c1917)}
-    .ik-desc{font-size:.79rem;color:var(--text-muted,#78716c);margin-top:1px}
-    .ik-tag{display:inline-block;background:#0d9488;color:#fff;font-size:.64rem;font-weight:800;padding:1px 7px;
-      border-radius:20px;margin-inline-start:7px;vertical-align:middle}
+    .ik-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+    .ik-card{display:grid;grid-template-columns:22px 78px 1fr auto;gap:11px;align-items:center;background:var(--surface,#fff);border:1px solid var(--border,#e5ddd4);border-radius:12px;padding:11px 13px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .12s}
+    .ik-card:hover{border-color:var(--accent2,#e8855a)}
+    .ik-card.ik-on{border-color:var(--accent,#d4673a);box-shadow:0 0 0 1px var(--accent,#d4673a)}
+    .ik-card.ik-toobig{opacity:.62}
+    .ik-card>input{width:19px;height:19px;accent-color:var(--accent,#d4673a);cursor:pointer;margin:0}
+    .ik-photo{width:78px;height:78px;object-fit:contain;background:#fff;border-radius:8px}
+    .ik-nophoto{display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:var(--surface2,#f7f4f0)}
+    .ik-body{min-width:0}
+    .ik-nm{font-weight:700;font-size:.9rem;color:var(--text,#1c1917)}
+    .ik-desc{font-size:.76rem;color:var(--text-muted,#78716c);margin-top:1px}
+    .ik-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}
+    .ik-dim{font-size:.72rem;color:var(--text-muted,#78716c);font-variant-numeric:tabular-nums}
+    .ik-tag{display:inline-block;background:#0d9488;color:#fff;font-size:.62rem;font-weight:800;padding:1px 7px;border-radius:20px;margin-inline-start:6px;vertical-align:middle}
+    .ik-fit{font-size:.68rem;font-weight:800;padding:1px 7px;border-radius:20px}
+    .ik-fit-ok{background:#dcfce7;color:#166534}
+    .ik-fit-no{background:#fee2e2;color:#991b1b}
+    .ik-foot{display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap}
+    .ik-stk{font-size:.7rem;font-weight:800;padding:1px 7px;border-radius:6px}
+    .ik-stk-ok{background:#dcfce7;color:#166534}
+    .ik-stk-low{background:#fef9c3;color:#854d0e}
+    .ik-stk-out{background:#fee2e2;color:#991b1b}
+    .ik-stk-load{background:var(--surface2,#f2f2f2);color:var(--text-muted,#78716c)}
+    .ik-stocklink,.ik-plink{font-size:.72rem;font-weight:700;color:var(--accent,#d4673a);text-decoration:none}
+    .ik-stocklink:hover,.ik-plink:hover{text-decoration:underline}
     .ik-price{text-align:left;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-start}
     .ik-now{font-weight:800;font-size:1rem;color:var(--text,#1c1917)}
-    .ik-was{color:var(--text-muted,#a8a29e);text-decoration:line-through;font-size:.76rem}
-    .ik-badge{background:#FFDB00;color:#7a5a00;font-weight:800;font-size:.62rem;padding:1px 6px;border-radius:4px;margin-top:2px}
-    .ik-bar{position:sticky;bottom:0;background:var(--surface,#fff);border:1px solid var(--border,#e5ddd4);
-      border-radius:var(--radius,14px);box-shadow:0 -6px 24px rgba(0,0,0,.1);padding:12px 16px;display:flex;
-      align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-    .ik-bar-info{display:flex;flex-direction:column}
-    .ik-bar-lbl{font-size:.78rem;color:var(--text-muted,#78716c);font-weight:600}
+    .ik-was{color:var(--text-muted,#a8a29e);text-decoration:line-through;font-size:.74rem}
+    .ik-badge{background:#FFDB00;color:#7a5a00;font-weight:800;font-size:.6rem;padding:1px 5px;border-radius:4px;margin-top:2px}
+    .ik-divider{margin:22px 0 12px;font-size:.8rem;font-weight:700;color:var(--text-muted,#78716c);border-top:1px dashed var(--border,#e5ddd4);padding-top:14px}
+    .ik-bar{position:sticky;bottom:0;background:var(--surface,#fff);border:1px solid var(--border,#e5ddd4);border-radius:var(--radius,14px);box-shadow:0 -6px 24px rgba(0,0,0,.1);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .ik-bar-lbl{font-size:.78rem;color:var(--text-muted,#78716c);font-weight:600;display:block}
     .ik-bar-tot{font-size:1.4rem;font-weight:800;color:var(--text,#1c1917)}
     .ik-bar-actions{display:flex;gap:8px;flex-wrap:wrap}
-    .ik-btn{background:var(--accent,#d4673a);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-weight:700;
-      font-size:.86rem;cursor:pointer;font-family:inherit}
+    .ik-btn{background:var(--accent,#d4673a);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-weight:700;font-size:.86rem;cursor:pointer;font-family:inherit}
     .ik-btn:hover{background:var(--accent2,#e8855a)}
     .ik-btn:disabled{opacity:.45;cursor:not-allowed}
     .ik-btn.ghost{background:transparent;color:var(--text-muted,#78716c);border:1px solid var(--border,#e5ddd4)}
   `;
 
-  return { render, toggle, add: addSelected, clear: clearPicks };
+  return { render, toggle, add:addSelected, clear:clearPicks, store:setStore, space:setSpace, fitOnly:toggleFitOnly };
 })();
