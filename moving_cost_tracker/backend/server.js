@@ -55,6 +55,7 @@ function readJson(file) {
       { id: 3, name: 'חדר שינה',  icon: '🛏️', owner: '' },
       { id: 4, name: 'אמבטיה',    icon: '🛁', owner: '' },
     ], items: [] };
+    if (file === 'ikeapicks.json')  return [];
     return null;
   }
 }
@@ -323,6 +324,7 @@ const server = http.createServer(async (req, res) => {
           config:     readJson('config.json'),
           categories: readJson('categories.json'),
           sales:      readJson('sales.json'),
+          ikeaPicks:  readJson('ikeapicks.json'),
         });
       }
       if (req.method === 'POST') {
@@ -336,6 +338,7 @@ const server = http.createServer(async (req, res) => {
           if (body.config     !== undefined) writeJson('config.json',     body.config);
           if (body.categories !== undefined) writeJson('categories.json', body.categories);
           if (body.sales      !== undefined) writeJson('sales.json',      body.sales);
+          if (body.ikeaPicks  !== undefined) writeJson('ikeapicks.json',  body.ikeaPicks);
           gitPush(new Date().toISOString().slice(0, 16));
           return jsonResponse(res, { ok: true });
         } catch (e) {

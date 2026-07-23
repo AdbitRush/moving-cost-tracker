@@ -930,19 +930,28 @@ button:active { transform: scale(.97); }
 }
 .quote-apply-btn:hover { filter: brightness(1.1); }
 
-/* ── PREMIUM 3D THEME overlay — fashionhotspot design language (2026-07-15) ── */
-body{background:#0a0e1a!important;}
-body::before{content:'';position:fixed;inset:-20%;z-index:0;pointer-events:none;background:
+/* ── THEME: declare color-scheme so iOS/Safari never auto-darkens content ── */
+:root{ color-scheme: light; }
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+/* ── DARK theme (cosmic) — default, applies unless data-theme="light" ── */
+.app-layout,.app-content,.topbar{position:relative;z-index:1;}   /* layout fix — always */
+/* .sidebar keeps its base position:fixed (z-index:200) so content sits beside it, not below */
+:root[data-theme="dark"] body{background:#0a0e1a!important;}
+:root[data-theme="dark"] body::before{content:'';position:fixed;inset:-20%;z-index:0;pointer-events:none;background:
   radial-gradient(ellipse 40% 34% at 15% 14%, rgba(255,194,60,.10), transparent 66%),
   radial-gradient(ellipse 44% 38% at 85% 10%, rgba(139,92,246,.14), transparent 66%),
   radial-gradient(ellipse 40% 34% at 60% 92%, rgba(14,165,233,.10), transparent 66%);
   animation:mcdrift 26s ease-in-out infinite alternate;}
 @keyframes mcdrift{to{transform:translate(2%,-2%) scale(1.06);}}
-.app-layout,.app-content,.topbar{position:relative;z-index:1;}
-/* .sidebar keeps its base position:fixed (z-index:200) so content sits beside it, not below */
-.sidebar{background:#0c1120!important;border-right:1px solid rgba(255,194,60,.12);}
-.topbar{background:linear-gradient(135deg,#141b2e,#1d1440)!important;border-bottom:1px solid rgba(255,194,60,.22)!important;}
-.logo-title,.sidebar-active-text{color:#FFC23C!important;}
+:root[data-theme="dark"] .sidebar{background:#0c1120!important;border-right:1px solid rgba(255,194,60,.12);}
+:root[data-theme="dark"] .topbar{background:linear-gradient(135deg,#141b2e,#1d1440)!important;border-bottom:1px solid rgba(255,194,60,.22)!important;}
+:root[data-theme="dark"] .logo-title,:root[data-theme="dark"] .sidebar-active-text{color:#FFC23C!important;}
+
+/* ── LIGHT theme — bright, clean; uses the warm base palette ── */
+:root[data-theme="light"] body{background:var(--bg);}
+:root[data-theme="light"] .sidebar{background:#241a12;}
+:root[data-theme="light"] .topbar{background:linear-gradient(135deg,#3a2a1a,#4a2e16);}
 
 /* ── LTR (English) — flip the fixed sidebar to the left ── */
 html[dir="ltr"] .sidebar{ right:auto; left:0; box-shadow:4px 0 24px rgba(0,0,0,.25); }

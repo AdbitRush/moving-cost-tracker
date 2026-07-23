@@ -71,6 +71,7 @@ const I18N = {
     ik_check_store:'בדקו בחנות ↗', ik_checking:'בודק מלאי…', ik_product_page:'דף המוצר ↗',
     ik_fit_ok:'מתאים למקום ✓', ik_fit_no:'גדול מדי ב', ik_sale_badge:'מבצע', ik_cm:'ס"מ',
     ik_note_bulbs:'הנורות נמכרות בנפרד', ik_note_rug:'רוחב×אורך — הזינו את שטח הרצפה ברוחב+עומק',
+    ik_search_ph:'🔍 חיפוש מוצר...', ik_no_results:'לא נמצאו מוצרים',
   },
   en: {
     app_title:'Moving Cost Tracker', logo_title:'Home Move', logo_sub:'Expense Tracker',
@@ -127,6 +128,7 @@ const I18N = {
     ik_check_store:'Check in store ↗', ik_checking:'Checking stock…', ik_product_page:'Product page ↗',
     ik_fit_ok:'Fits ✓', ik_fit_no:'Too big: ', ik_sale_badge:'SALE', ik_cm:'cm',
     ik_note_bulbs:'Bulbs sold separately', ik_note_rug:'Width×Length — enter your floor width+depth',
+    ik_search_ph:'🔍 Search products...', ik_no_results:'No products found',
   }
 };
 
@@ -157,6 +159,7 @@ function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>_setElText(el, t(el.getAttribute('data-i18n'))));
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = t(el.getAttribute('data-i18n-ph')); });
   const lb=document.getElementById('langBtn'); if(lb) lb.textContent = t('lang_name');
+  applyTheme();
   // refresh dynamic areas that are already on screen
   try{
     if(typeof TAB_TITLES!=='undefined'){ /* titles read live via t() */ }
@@ -175,3 +178,11 @@ function applyLang(){
 }
 
 function toggleLang(){ LANG = LANG==='he'?'en':'he'; localStorage.setItem('mct-lang', LANG); applyLang(); }
+
+// ── Theme (Light / Dark) ──
+var THEME = localStorage.getItem('mct-theme') || 'dark';
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', THEME);
+  const b=document.getElementById('themeBtn'); if(b) b.textContent = (THEME==='dark' ? '☀️' : '🌙');
+}
+function toggleTheme(){ THEME = (THEME==='dark' ? 'light' : 'dark'); localStorage.setItem('mct-theme', THEME); applyTheme(); }

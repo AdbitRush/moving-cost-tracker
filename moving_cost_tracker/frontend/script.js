@@ -1137,6 +1137,8 @@ async function loadFromServer() {
     if (data.config)     { config     = data.config;     saveConfig(); document.getElementById('budgetInput').value = config.budget || ''; }
     if (data.categories) { categories = data.categories; saveCategories(); }
     if (data.sales)      { saleItems  = data.sales;      saveSaleItems(); }
+    if (data.ikeaPicks)  { localStorage.setItem('mct-ikea-picks', JSON.stringify(data.ikeaPicks));
+      if (typeof Ikea !== 'undefined' && document.querySelector('.sidebar-link.active[data-tab="ikea"]')) Ikea.render(); }
     renderCategoryChips(); renderRoomChips(); renderCategoryDropdown();
     renderItemsTable(); renderSaleItems(); updateSummary();
     toast(t('toast_loaded_server'), 'success');
@@ -1164,7 +1166,8 @@ async function saveToServer() {
     const res = await fetch(SYNC_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pwd, items, config, categories, sales: saleItems }),
+      body: JSON.stringify({ password: pwd, items, config, categories, sales: saleItems,
+        ikeaPicks: JSON.parse(localStorage.getItem('mct-ikea-picks') || '[]') }),
     });
     if (res.status === 401) {
       localStorage.removeItem('mct-sync-pwd');

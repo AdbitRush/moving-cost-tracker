@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title data-i18n="app_title">מעקב הוצאות מעבר דירה</title>
+  <meta name="color-scheme" content="light dark" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('mct-theme') || 'dark');</script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -105,6 +107,7 @@
       <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
       <span class="topbar-title" id="topbarTitle" data-i18n="t_dashboard">📊 לוח בקרה</span>
       <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm" id="themeBtn" onclick="toggleTheme()" title="Light / Dark">☀️</button>
         <button class="btn btn-outline btn-sm" id="langBtn" onclick="toggleLang()">English</button>
         <button class="btn btn-outline btn-sm" id="exportCsvBtn">⬇ CSV</button>
       </div>

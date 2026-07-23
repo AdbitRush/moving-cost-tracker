@@ -21,6 +21,7 @@ const Ikea = (() => {
   let stock = {};          // stock[itemNo] = { '217': {msg,qty}, '206': {...} }
   let stockLoaded = false;
   let fitOnly = false;
+  let query = '';
 
   // ── Furniture + lights dataset (w×d×h = external cm; wExt = extended width) ──
   // img holds the IKEA CDN photo; product URL is derived from it + itemNo.
@@ -98,6 +99,14 @@ const Ikea = (() => {
       { sku:'LINDBYN', name:'מראה', size:'60×170', price:450, itemNo:'80597232', img:'lindbyn-mirror-black__1374978_pe960159' },
       { sku:'HOVET', name:'מראה גדולה', size:'78×196', price:695, itemNo:'70515915', img:'hovet-mirror-black__1100010_pe866038' },
     ]},
+    { icon:'👶', title:'בטיחות לתינוק', titleEn:'Baby-proofing', room:'חדר תינוק', items:[
+      { sku:'ANTILOP', name:'כיסא אוכל לתינוק', nameEn:'Baby high chair', desc:'כולל חגורת בטיחות', price:75, itemNo:'s49597512', img:'antilop-highchair-with-safety-belt-white-white__1416380_pe975534' },
+      { sku:'UNDVIKA', name:'נעילה למגירות/ארונות', nameEn:'Drawer/cabinet lock', price:29, itemNo:'40339867', tag:'הכי חשוב', img:'undvika-multi-latch-white__0660459_pe711055' },
+      { sku:'PATRULL', name:'מגן לשקע חשמל', nameEn:'Socket cover', price:19, itemNo:'70599552', img:'patrull-safety-plug-white__0710895_pe727827' },
+      { sku:'UNDVIKA', name:'מגן פינות', nameEn:'Corner bumper', price:25, itemNo:'20349023', img:'undvika-corner-bumper-white__0710896_pe727828' },
+      { sku:'PATRULL', name:'מעצור לדלת', nameEn:'Door stop', price:25, itemNo:'90599551', img:'patrull-door-stop-white__0710894_pe727826' },
+      { sku:'UNDVIKA', name:'נעילה לחלון', nameEn:'Window catch', price:45, itemNo:'40599558', img:'undvika-window-catch-white__0981071_pe815255' },
+    ]},
   ];
 
   // ── helpers ──
@@ -173,6 +182,7 @@ const Ikea = (() => {
   function setStore(code){ if(!STORES[code])return; store=code; localStorage.setItem(STORE_KEY,code); render(); }
   function setSpace(dim,val){ space[dim]=Math.max(0,parseInt(val,10)||0); saveS(); renderCards(); }
   function toggleFitOnly(v){ fitOnly=v; renderCards(); }
+  function setQuery(v){ query=(v||'').toLowerCase().trim(); renderCards(); }
   function clearPicks(){ picks.clear(); saveP(); document.querySelectorAll('.ik-card.ik-on').forEach(r=>r.classList.remove('ik-on')); document.querySelectorAll('.ik-card input').forEach(c=>c.checked=false); updateBar(); }
 
   function addSelected(){
@@ -196,6 +206,7 @@ const Ikea = (() => {
   function card(sec,it){
     const key=keyOf(sec,it), on=picks.has(key), f=fit(it);
     if(fitOnly && f && !f.ok) return '';
+    if(query){ const hay=(it.sku+' '+it.name+' '+(it.nameEn||'')+' '+(it.desc||'')+' '+(sec.title||'')+' '+(sec.titleEn||'')).toLowerCase(); if(hay.indexOf(query)===-1) return ''; }
     const priceHtml=(it.was?'<span class="ik-was">'+fmt(it.was)+'</span>':'')+'<span class="ik-now">'+fmt(it.price)+'</span>'+(it.was?'<span class="ik-badge">'+t('ik_sale_badge')+'</span>':'');
     const tag=it.tag?'<span class="ik-tag">'+esc(it.tag)+'</span>':'';
     let dimStr='';
@@ -209,7 +220,7 @@ const Ikea = (() => {
     return '<label class="ik-card'+(on?' ik-on':'')+(f&&!f.ok?' ik-toobig':'')+'" data-key="'+esc(key)+'">'
       +'<input type="checkbox" '+(on?'checked':'')+' onchange="Ikea.toggle(this.closest(\'.ik-card\').dataset.key,this.checked)">'
       +thumb
-      +'<div class="ik-body"><div class="ik-nm">'+esc(it.sku)+' · '+esc(it.name)+tag+'</div>'
+      +'<div class="ik-body"><div class="ik-nm">'+esc(it.sku)+' · '+esc((typeof LANG!=='undefined'&&LANG==='en'&&it.nameEn)?it.nameEn:it.name)+tag+'</div>'
       +(it.desc?'<div class="ik-desc">'+esc(it.desc)+'</div>':'')
       +'<div class="ik-meta">'+dimStr+fitHtml+'</div>'
       +'<div class="ik-foot">'+stockBadge(it)+'<a class="ik-plink" href="'+prodUrl(it)+'" target="_blank" rel="noopener">'+t('ik_product_page')+'</a></div></div>'
@@ -226,9 +237,10 @@ const Ikea = (() => {
 
   function renderCards(){
     const host=document.getElementById('ikCards'); if(!host) return;
-    host.innerHTML = FURN.map(s=>sectionHtml(s,true)).join('')
-      + '<div class="ik-divider">'+t('ik_more')+'</div>'
-      + CONSUM.map(s=>sectionHtml(s,false)).join('');
+    const furn = FURN.map(s=>sectionHtml(s,true)).join('');
+    const cons = CONSUM.map(s=>sectionHtml(s,false)).join('');
+    const divider = cons ? '<div class="ik-divider">'+t('ik_more')+'</div>' : '';
+    host.innerHTML = (furn + divider + cons) || ('<div class="ik-noresult">'+t('ik_no_results')+'</div>');
     updateBar();
   }
 
@@ -242,6 +254,7 @@ const Ikea = (() => {
       +'<p class="ik-hero-sub">רהיטים ותאורה עם תמונה, קישור, מלאי חי בחנות, ובדיקת התאמה למידות שלכם. סמנו והוסיפו לרשימת הפריטים.</p>'
       +'<div class="ik-sale">🔖 מבצע IKEA SALE — המחירים המחוקים בתוקף עד <b>'+SALE_END+'</b></div></div>'
       // controls
+      +'<div class="ik-search-row"><input class="ik-search" type="search" placeholder="'+t('ik_search_ph')+'" value="'+esc(query)+'" oninput="Ikea.search(this.value)"></div>'
       +'<div class="ik-controls">'
         +'<div class="ik-ctl"><span class="ik-ctl-lbl">'+t('ik_store_lbl')+'</span><div class="ik-stores">'+sBtn('217')+sBtn('206')+'</div></div>'
         +'<div class="ik-ctl"><span class="ik-ctl-lbl">'+t('ik_space_lbl')+'</span><div class="ik-space">'
@@ -269,6 +282,9 @@ const Ikea = (() => {
     .ik-hero-title{font-size:1.3rem;font-weight:800}
     .ik-hero-sub{margin:10px 0 0;color:#dcebf8;font-size:.9rem;max-width:72ch;line-height:1.5}
     .ik-sale{margin-top:12px;background:#FFDB00;color:#12233a;border-radius:8px;padding:7px 12px;font-weight:700;font-size:.83rem;display:inline-block}
+    .ik-search-row{margin-bottom:12px}
+    .ik-search{width:100%;padding:11px 14px;border:1px solid var(--border,#e5ddd4);border-radius:12px;font-family:inherit;font-size:.95rem;background:var(--surface,#fff);color:var(--text,#1c1917);box-shadow:var(--shadow)}
+    .ik-noresult{text-align:center;color:var(--text-muted,#78716c);padding:40px;font-size:1rem}
     .ik-controls{background:var(--surface,#fff);border:1px solid var(--border,#e5ddd4);border-radius:var(--radius,14px);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end}
     .ik-ctl-lbl{display:block;font-size:.75rem;font-weight:700;color:var(--text-muted,#78716c);margin-bottom:6px}
     .ik-stores{display:flex;gap:6px}
@@ -329,7 +345,10 @@ const Ikea = (() => {
       .ik-hero-title{font-size:1.05rem}
       .ik-hero-sub{font-size:.82rem}
       .ik-sale{font-size:.76rem}
-      .ik-controls{flex-direction:column;align-items:stretch;gap:12px;padding:12px}
+      .ik-search-row{margin-bottom:12px}
+    .ik-search{width:100%;padding:11px 14px;border:1px solid var(--border,#e5ddd4);border-radius:12px;font-family:inherit;font-size:.95rem;background:var(--surface,#fff);color:var(--text,#1c1917);box-shadow:var(--shadow)}
+    .ik-noresult{text-align:center;color:var(--text-muted,#78716c);padding:40px;font-size:1rem}
+    .ik-controls{flex-direction:column;align-items:stretch;gap:12px;padding:12px}
       .ik-stores{display:flex}
       .ik-storebtn{flex:1}
       .ik-space{justify-content:space-between;gap:6px}
@@ -354,5 +373,5 @@ const Ikea = (() => {
     }
   `;
 
-  return { render, toggle, add:addSelected, clear:clearPicks, store:setStore, space:setSpace, fitOnly:toggleFitOnly };
+  return { render, toggle, add:addSelected, clear:clearPicks, store:setStore, space:setSpace, fitOnly:toggleFitOnly, search:setQuery };
 })();
