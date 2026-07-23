@@ -1124,7 +1124,7 @@ function importJSON(event) {
 // point at the server, e.g. http://YOUR-SERVER-IP:3456/api/sync
 const SYNC_API = localStorage.getItem('mct-api-url') ||
   (window.location.hostname.includes('github.io')
-    ? 'http://178.105.148.72:3456/api/sync'
+    ? 'https://178-105-148-72.sslip.io/api/sync'  // HTTPS (Caddy + Let's Encrypt) — avoids mixed-content block from the HTTPS Pages site
     : '/api/sync');
 
 async function loadFromServer() {
