@@ -52,6 +52,11 @@ const Ikea = (() => {
       { sku:'BILLY', name:'ארון ספרים 80 ס"מ', price:295, was:395, itemNo:'00263850', w:80, d:28, h:202, tag:'קלאסיקה', img:'billy-bookcase-white__0625599_pe692385' },
       { sku:'BILLY', name:'ארון ספרים 40 ס"מ', price:225, was:295, itemNo:'50263838', w:40, d:28, h:202, img:'billy-bookcase-white__0644260_pe702536' },
     ]},
+    { icon:'🟫', title:'שטיחים', room:'סלון', note:'רוחב×אורך — הזינו את שטח הרצפה ברוחב+עומק', items:[
+      { sku:'TIPHEDE', name:'שטיח אריגה שטוחה', desc:'טבעי/שחור', price:69, itemNo:'40456757', w:120, d:180, h:0, tag:'זול ויפה', img:'tiphede-rug-flatwoven-natural-black__0772066_pe755879' },
+      { sku:'STARREKLINTE', name:'שטיח אריגה שטוחה', price:145, itemNo:'20569133', w:120, d:180, h:0, img:'starreklinte-rug-flatwoven-natural-black__1205718_pe907217' },
+      { sku:'LOHALS', name:'שטיח יוטה גדול', price:595, itemNo:'50277393', w:160, d:230, h:0, img:'lohals-rug-flatwoven-natural__0280221_pe419173' },
+    ]},
     { icon:'💡', title:'תאורה — מנורות עומדות', room:'סלון', note:'הנורות נמכרות בנפרד', items:[
       { sku:'BARLAST', name:'מנורה עומדת', price:49, itemNo:'10430368', w:25, d:25, h:150, tag:'הכי זולה', img:'barlast-floor-lamp-black-white__0957676_pe805130' },
       { sku:'TÅGARP', name:'מנורה עומדת (תאורה עילית)', price:69, itemNo:'20404095', w:28, d:20, h:175, img:'tagarp-floor-uplighter-black-white__0810840_pe771436' },
@@ -61,22 +66,25 @@ const Ikea = (() => {
     ]},
   ];
 
-  // ── Consumables (simple cards, no fit/photo yet — coming next) ──
+  // ── Consumables (photo + link + live stock; size shown where relevant, no fit) ──
   const CONSUM = [
     { icon:'🍳', title:'מטבח — כלים', room:'מטבח', items:[
-      { sku:'IKEA 365+', name:'סט סירים 9 חלקים', price:295, was:375 },
-      { sku:'HEMKOMST', name:'סט סירים + מחבת 7 חלקים', price:350, was:450 },
-      { sku:'IKEA 365+', name:'סט סכו"ם 24 חלקים', price:125 },
-      { sku:'IKEA 365+', name:'סט כלים (צלחות) 18 חלקים', price:145, was:225 },
+      { sku:'IKEA 365+', name:'סט סירים 6 חלקים', desc:'פלדת אל-חלד', price:150, was:195, itemNo:'80484329', img:'ikea-365-cookware-set-of-6-stainless-steel__1006151_pe825738' },
+      { sku:'IKEA 365+', name:'מחבת 24 ס"מ', desc:'פלדת אל-חלד', price:59, was:79, itemNo:'20582733', img:'ikea-365-frying-pan-stainless-steel__1257430_pe925809' },
+      { sku:'FÄRGKLAR', name:'סט כלים 18 חלקים', desc:'צלחות + קערות ל-6', price:125, was:169, itemNo:'80564689', img:'faergklar-18-piece-service-matt-light-turquoise__1188584_pe899529' },
+      { sku:'IKEA 365+', name:'כוס זכוכית', desc:'נמכרת ביחידה', price:5, itemNo:'60279711', img:'ikea-365-glass-clear-glass__0928963_pe790099' },
     ]},
     { icon:'🌙', title:'מצעים', room:'חדר שינה ראשי', items:[
-      { sku:'ÄNGSLILJA', name:'ציפה + 2 ציפיות', price:95, was:145 },
-      { sku:'SKOGSFRÄKEN', name:'שמיכת פוך 150×200', price:175 },
-      { sku:'DVALA', name:'סדין גומי 160×200', price:55 },
+      { sku:'ÄNGSLILJA', name:'ציפה + 2 ציפיות', size:'200×220', price:95, was:145, itemNo:'20592534', tag:'משתלם', img:'aengslilja-duvet-cover-and-2-pillowcases-grey-green__1316055_pe940620' },
+      { sku:'DVALA', name:'סדין גומי', size:'160×200', price:55, itemNo:'70621143', img:'dvala-fitted-sheet-white__0604085_pe681026' },
+    ]},
+    { icon:'🪟', title:'וילונות', room:'סלון', items:[
+      { sku:'BENGTA', name:'וילון האפלה (יחידה)', size:'210×300', price:65, itemNo:'00602162', img:'bengta-block-out-curtain-1-piece-light-pink-with-heading-tape__1341510_pe948773' },
+      { sku:'STENFRÖ', name:'וילון שקוף', size:'300×300', price:125, itemNo:'10597706', img:'stenfroe-sheer-curtain-1-piece-white-with-heading-tape__1320508_pe941259' },
+      { sku:'LILL', name:'וילון רשת (זוג)', size:'280×300', price:19, itemNo:'10070262', tag:'הכי זול', img:'lill-net-curtains-1-pair-white-with-rod-pocket__0598717_pe677784' },
     ]},
     { icon:'🛁', title:'מגבות', room:'חדר אמבטיה', items:[
-      { sku:'VÅGSJÖN', name:'מגבת רחצה 70×140', price:19, was:25 },
-      { sku:'GULVIAL', name:'מגבת רחצה 100×150', price:49, was:75 },
+      { sku:'VÅGSJÖN', name:'מגבת רחצה', size:'70×140', price:19, was:25, itemNo:'20609134', img:'vagsjoen-bath-towel-dark-grey__0604997_pe681580' },
     ]},
   ];
 
@@ -110,7 +118,7 @@ const Ikea = (() => {
 
   // ── live stock ──
   async function loadStock(){
-    const nums=[]; FURN.forEach(s=>s.items.forEach(it=>{ if(/^\d+$/.test(it.itemNo)) nums.push(it.itemNo); }));
+    const nums=[]; FURN.concat(CONSUM).forEach(s=>s.items.forEach(it=>{ if(/^\d+$/.test(it.itemNo)) nums.push(it.itemNo); }));
     try{
       const res=await fetch('https://api.ingka.ikea.com/cia/availabilities/ru/il?itemNos='+nums.join(',')+'&expand=StoresList',
         {headers:{'x-client-id':AVAIL_CLIENT,'Accept':'application/json;version=2'}});
@@ -178,7 +186,9 @@ const Ikea = (() => {
     if(fitOnly && f && !f.ok) return '';
     const priceHtml=(it.was?'<span class="ik-was">'+fmt(it.was)+'</span>':'')+'<span class="ik-now">'+fmt(it.price)+'</span>'+(it.was?'<span class="ik-badge">מבצע</span>':'');
     const tag=it.tag?'<span class="ik-tag">'+esc(it.tag)+'</span>':'';
-    const dimStr=it.w?('<span class="ik-dim">'+it.w+(it.wExt?('→'+it.wExt):'')+'×'+it.d+'×'+it.h+' ס"מ</span>'):'';
+    let dimStr='';
+    if(it.w){ const p=[it.w+(it.wExt?('→'+it.wExt):'')]; if(it.d)p.push(it.d); if(it.h)p.push(it.h); dimStr='<span class="ik-dim">'+p.join('×')+' ס"מ</span>'; }
+    else if(it.size){ dimStr='<span class="ik-dim">'+it.size+' ס"מ</span>'; }
     let fitHtml='';
     if(f) fitHtml=f.ok?'<span class="ik-fit ik-fit-ok">מתאים למקום ✓</span>'
                      :'<span class="ik-fit ik-fit-no">גדול מדי ב'+f.bad.join(', ')+'</span>';
@@ -205,7 +215,7 @@ const Ikea = (() => {
   function renderCards(){
     const host=document.getElementById('ikCards'); if(!host) return;
     host.innerHTML = FURN.map(s=>sectionHtml(s,true)).join('')
-      + '<div class="ik-divider">מוצרים נוספים (תמונות ומלאי בקרוב)</div>'
+      + '<div class="ik-divider">כלים, מצעים, וילונות ומגבות</div>'
       + CONSUM.map(s=>sectionHtml(s,false)).join('');
     updateBar();
   }
