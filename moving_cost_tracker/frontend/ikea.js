@@ -8,6 +8,32 @@ const Ikea = (() => {
   const STORES = { '217': 'ראשון לציון', '206': 'נתניה' };
   const STORES_EN = { '217': 'Rishon LeZion', '206': 'Netanya' };
   function storeName(c){ return (typeof LANG!=='undefined' && LANG==='en' && STORES_EN[c]) ? STORES_EN[c] : STORES[c]; }
+  // English display maps (keyed by the Hebrew type name / desc / tag)
+  const NAME_EN = {
+    'ארון 2 דלתות':'2-door wardrobe','ארון 3 דלתות':'3-door wardrobe','ארון PAX (ידיות בנפרד)':'PAX wardrobe (handles separate)',
+    'מסגרת מיטה מרופדת 160×200':'Upholstered bed frame 160×200','מסגרת מיטה אורן 140×200':'Pine bed frame 140×200',
+    'ספה דו-מושבית':'2-seat sofa','ספה תלת-מושבית':'3-seat sofa',
+    'שולחן נפתח':'Extendable table','שולחן':'Table','שולחן + 4 כיסאות':'Table + 4 chairs',
+    'כיסא':'Chair','כיסא מרופד':'Upholstered chair','כיסא שקוף':'Clear chair',
+    'יחידת טלוויזיה':'TV unit','ארון ספרים 80 ס"מ':'Bookcase 80 cm','ארון ספרים 40 ס"מ':'Bookcase 40 cm',
+    'שטיח אריגה שטוחה':'Flatwoven rug','שטיח יוטה גדול':'Large jute rug',
+    'מנורה עומדת':'Floor lamp','מנורה עומדת (תאורה עילית)':'Floor uplighter','מנורה עומדת עץ מילה':'Ash floor lamp','מנורה עומדת פליז':'Brass floor lamp',
+    'סט סירים 6 חלקים':'6-pc cookware set','מחבת 24 ס"מ':'Frying pan 24 cm','סט כלים 18 חלקים':'18-pc dinnerware set','כוס זכוכית':'Glass',
+    'ציפה + 2 ציפיות':'Duvet cover + 2 pillowcases','סדין גומי':'Fitted sheet',
+    'וילון האפלה (יחידה)':'Blackout curtain (1 pc)','וילון שקוף':'Sheer curtain','וילון רשת (זוג)':'Net curtains (pair)',
+    'מגבת רחצה':'Bath towel','מראה':'Mirror','מראה גדולה':'Large mirror',
+  };
+  const DESC_EN = {
+    'כולל בסיס מפסי עץ':'incl. slatted base','כיסוי נשלף':'removable cover','כיסוי כביס':'washable cover','עמוקה ונוחה':'deep & comfy',
+    'נפתח ל-180 ס"מ':'extends to 180 cm','פורניר מילה':'ash veneer','עץ, קומפקטי':'wood, compact','עיצוב מודרני':'modern design',
+    'טבעי/שחור':'natural/black','תעשייתית':'industrial','פלדת אל-חלד':'stainless steel','צלחות + קערות ל-6':'plates + bowls for 6',
+    'נמכרת ביחידה':'sold each','כולל חגורת בטיחות':'incl. safety belt',
+  };
+  const TAG_EN = { 'הכי זול':'Cheapest','הכי זולה':'Cheapest','משתלם':'Best value','קלאסיקה':'Classic','סט שלם':'Complete set','זול ויפה':'Cheap & nice','הכי חשוב':'Most important' };
+  const isEn = () => (typeof LANG!=='undefined' && LANG==='en');
+  function nmOf(it){ return isEn() ? (it.nameEn || NAME_EN[it.name] || it.name) : it.name; }
+  function dscOf(it){ return isEn() ? (it.descEn || DESC_EN[it.desc] || it.desc) : it.desc; }
+  function tagOf(tg){ return isEn() ? (TAG_EN[tg] || tg) : tg; }
   const AVAIL_CLIENT = 'b6c117e5-ae61-4ef5-b4cc-e0b1e37f0631';
   const IKEA = 'https://www.ikea.com/il/he';
   const PICKS_KEY = 'mct-ikea-picks';
@@ -208,7 +234,7 @@ const Ikea = (() => {
     if(fitOnly && f && !f.ok) return '';
     if(query){ const hay=(it.sku+' '+it.name+' '+(it.nameEn||'')+' '+(it.desc||'')+' '+(sec.title||'')+' '+(sec.titleEn||'')).toLowerCase(); if(hay.indexOf(query)===-1) return ''; }
     const priceHtml=(it.was?'<span class="ik-was">'+fmt(it.was)+'</span>':'')+'<span class="ik-now">'+fmt(it.price)+'</span>'+(it.was?'<span class="ik-badge">'+t('ik_sale_badge')+'</span>':'');
-    const tag=it.tag?'<span class="ik-tag">'+esc(it.tag)+'</span>':'';
+    const tag=it.tag?'<span class="ik-tag">'+esc(tagOf(it.tag))+'</span>':'';
     let dimStr='';
     if(it.w){ const p=[it.w+(it.wExt?('→'+it.wExt):'')]; if(it.d)p.push(it.d); if(it.h)p.push(it.h); dimStr='<span class="ik-dim">'+p.join('×')+' '+t('ik_cm')+'</span>'; }
     else if(it.size){ dimStr='<span class="ik-dim">'+it.size+' '+t('ik_cm')+'</span>'; }
@@ -220,8 +246,8 @@ const Ikea = (() => {
     return '<label class="ik-card'+(on?' ik-on':'')+(f&&!f.ok?' ik-toobig':'')+'" data-key="'+esc(key)+'">'
       +'<input type="checkbox" '+(on?'checked':'')+' onchange="Ikea.toggle(this.closest(\'.ik-card\').dataset.key,this.checked)">'
       +thumb
-      +'<div class="ik-body"><div class="ik-nm">'+esc(it.sku)+' · '+esc((typeof LANG!=='undefined'&&LANG==='en'&&it.nameEn)?it.nameEn:it.name)+tag+'</div>'
-      +(it.desc?'<div class="ik-desc">'+esc(it.desc)+'</div>':'')
+      +'<div class="ik-body"><div class="ik-nm">'+esc(it.sku)+' · '+esc(nmOf(it))+tag+'</div>'
+      +(it.desc?'<div class="ik-desc">'+esc(dscOf(it))+'</div>':'')
       +'<div class="ik-meta">'+dimStr+fitHtml+'</div>'
       +'<div class="ik-foot">'+stockBadge(it)+'<a class="ik-plink" href="'+prodUrl(it)+'" target="_blank" rel="noopener">'+t('ik_product_page')+'</a></div></div>'
       +'<div class="ik-price">'+priceHtml+'</div></label>';
