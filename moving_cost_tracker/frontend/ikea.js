@@ -283,7 +283,7 @@ const Ikea = (() => {
     .ik-sechead h3{font-size:1.05rem;font-weight:800;color:var(--text,#1c1917);margin:0}
     .ik-secroom{font-size:.7rem;font-weight:700;color:var(--accent,#d4673a);background:var(--accent-light,#fdf0ea);padding:2px 9px;border-radius:20px}
     .ik-secnote{font-size:.72rem;color:var(--text-muted,#78716c)}
-    .ik-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+    .ik-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:12px}
     .ik-card{display:grid;grid-template-columns:22px 78px 1fr auto;gap:11px;align-items:center;background:var(--surface,#fff);border:1px solid var(--border,#e5ddd4);border-radius:12px;padding:11px 13px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .12s}
     .ik-card:hover{border-color:var(--accent2,#e8855a)}
     .ik-card.ik-on{border-color:var(--accent,#d4673a);box-shadow:0 0 0 1px var(--accent,#d4673a)}
@@ -321,6 +321,35 @@ const Ikea = (() => {
     .ik-btn:hover{background:var(--accent2,#e8855a)}
     .ik-btn:disabled{opacity:.45;cursor:not-allowed}
     .ik-btn.ghost{background:transparent;color:var(--text-muted,#78716c);border:1px solid var(--border,#e5ddd4)}
+    /* ── tablet / phone ── */
+    @media(max-width:600px){
+      .ik-hero{padding:15px 16px}
+      .ik-hero-title{font-size:1.05rem}
+      .ik-hero-sub{font-size:.82rem}
+      .ik-sale{font-size:.76rem}
+      .ik-controls{flex-direction:column;align-items:stretch;gap:12px;padding:12px}
+      .ik-stores{display:flex}
+      .ik-storebtn{flex:1}
+      .ik-space{justify-content:space-between;gap:6px}
+      .ik-space label{flex:1;align-items:center;text-align:center}
+      .ik-space input{width:100%}
+      .ik-fitonly{justify-content:flex-start}
+      .ik-grid{grid-template-columns:1fr;gap:10px}
+      .ik-card{grid-template-columns:18px 56px 1fr auto;gap:9px;padding:10px 11px}
+      .ik-photo{width:56px;height:56px}
+      .ik-nm{font-size:.85rem}
+      .ik-now{font-size:.92rem}
+      .ik-bar{padding:10px 12px}
+      .ik-bar-tot{font-size:1.2rem}
+      .ik-bar-actions{width:100%}
+      .ik-bar-actions .ik-btn{flex:1}
+      .ik-btn{padding:9px 12px;font-size:.82rem}
+    }
+    @media(max-width:380px){
+      .ik-card{grid-template-columns:16px 48px 1fr;gap:8px}
+      .ik-photo{width:48px;height:48px}
+      .ik-price{grid-column:1 / -1;flex-direction:row;gap:8px;align-items:baseline;justify-self:start;margin-top:2px;padding-inline-start:24px}
+    }
   `;
 
   return { render, toggle, add:addSelected, clear:clearPicks, store:setStore, space:setSpace, fitOnly:toggleFitOnly };
