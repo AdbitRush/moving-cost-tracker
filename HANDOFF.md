@@ -41,25 +41,60 @@ numbers as today's. Offline you get the frame and an empty state.
 **Bump `V` in `sw.js`** whenever you change `style.css`, `script.js`, `i18n.js`,
 `rooms.js`, `ikea.js` or an icon, or installed phones keep the old bundle.
 
-### ⚠️ The VPS checkout has forked from GitHub — resolve before the next deploy
+### The VPS fork — resolved 2026-07-30, and why it happened
 
-As of 2026-07-30 `/root/repos/moving-cost-tracker` is **13 commits ahead and 8
-behind** `origin/main`, with ~91 lines staged-but-uncommitted on top. The extra
-commits are all automated `sync: <timestamp>` snapshots, and they touch the same
-frontend files as the GitHub history — so `git pull` fails with
-*"Not possible to fast-forward"*.
+`/root/repos/moving-cost-tracker` had drifted to **13 commits ahead / 8 behind**
+`origin/main`, so `git pull` failed with *"Not possible to fast-forward"*. Now
+**0 / 0**: `git pull` works again and deploys are a normal pull + restart.
 
-Because of that, the PWA files were deployed to the VPS **surgically, not by pull**:
-the six new files were copied in, and `index.html` / `server.js` were patched at
-anchors that are identical on both sides. Backups:
-`/root/mct-index.html.pre-pwa-2026-07-30` and `/root/mct-server.js.pre-pwa-2026-07-30`.
-Those two files are now modified on the VPS and **not committed anywhere**.
+**What the fork actually was.** The 13 extra commits were automated
+`sync: <timestamp>` snapshots and they contained **nothing unique in code** — the
+VPS's `.js`/`.css`/`.html` were already byte-identical to `origin/main` (origin even
+had a *later* sync, 19:25 vs the VPS's 19:10). The only real difference was
+`moving_cost_tracker/data/*.json` — **the live expense data**, which on the VPS held
+**21 items to origin's 13**. A naive `git reset --hard origin/main` would have
+silently destroyed 8 real entries.
 
-Someone has to decide which side is authoritative and reconcile — merge the sync
-commits into `origin/main`, or reset the VPS to origin and accept losing them. Until
-then every deploy here is hand-surgery. Whatever writes the `sync:` commits is not
-in cron (`/etc/cron.d` has only espresso-pull, wed-studio-pull, sysstat, e2scrub);
-find it before reconciling or it will fork again.
+**How it was resolved:** code reset to `origin/main`, then the live data copied back
+over the top. Verified after: 21 items, 8 sales, 12 categories, site up.
+
+**Why it will not recur:** the six `data/*.json` files are now marked
+`--skip-worktree` on the VPS, so git ignores local changes to them and the
+automated committer cannot pick them up and re-diverge.
+- Check with `git ls-files -v moving_cost_tracker/data` — an `S` flag means skipped.
+- **Caveat:** if anyone ever commits those files upstream again, `git pull` on the
+  VPS will refuse to overwrite them. Undo with
+  `git update-index --no-skip-worktree moving_cost_tracker/data/*.json`.
+
+**Nothing was thrown away.** All of it is still on the box:
+| | |
+|---|---|
+| `backup/vps-fork-2026-07-30` | branch pinning all 13 original commits |
+| `wip/vps-uncommitted-2026-07-30` | branch at the same point for the uncommitted work |
+| `/root/mct-repo-backup-2026-07-30.tgz` | full tarball of the repo incl. `.git` |
+| `/root/mct-live-data-2026-07-30/` | the live JSON data as it was |
+| `/root/mct-index.html.pre-pwa-…`, `/root/mct-server.js.pre-pwa-…` | pre-PWA file backups |
+
+Delete those once you're satisfied things are healthy.
+
+### 🔴 Still open: this is a PUBLIC repo and it tracks your real expense data
+
+`moving_cost_tracker/data/*.json` — items, prices, sales, budget — are **committed
+to a public GitHub repo**. Skip-worktree stops *new* data reaching it, but what is
+already in the history is public and stays public until someone rewrites it.
+
+Two decisions for the owner:
+1. **Untrack the data** (`git rm --cached moving_cost_tracker/data/*.json` +
+   `.gitignore`) so each machine keeps its own. ⚠️ Do it carefully: other clones
+   pulling that commit will have their local `data/*.json` **deleted** — back them
+   up on every machine first. This is why it wasn't done unattended.
+2. **Or make the repo private**, which is the one-click option if the data is meant
+   to be shared between your own machines.
+
+Also unresolved: whatever writes the `sync:` commits is **not in cron**
+(`/etc/cron.d` has only espresso-pull, wed-studio-pull, sysstat, e2scrub). Find it
+before relying on the fix — skip-worktree neutralises the data half, but an unknown
+committer running on the box is still an unknown.
 
 ---
 
