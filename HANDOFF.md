@@ -10,11 +10,56 @@
 
 ## What This App Does
 
-Pure static frontend (HTML/CSS/JS, localStorage only — no backend, no server).  
-Tracks all moving expenses: items, costs, categories, rooms, appointments, selling items.  
-Works offline, deployable to GitHub Pages as-is.
+Tracks all moving expenses: items, costs, categories, rooms, appointments, selling
+items, plus an IKEA picks list. Hebrew RTL with an EN toggle, light/dark themes.
 
-**Files:** `moving_cost_tracker/frontend/index.html`, `style.css`, `script.js`
+⚠️ **It is NOT "localStorage only, no backend"** (as this file used to claim).
+There is a Node backend — `moving_cost_tracker/backend/server.js` — that serves the
+frontend *and* a REST API (`/api/items`, `/api/categories`, `/api/sales`,
+`/api/config`, `/api/rooms`, `/api/ikeapicks`) persisting to JSON files in
+`moving_cost_tracker/data/`. **Your data lives on the server, not in the browser**,
+so it is not deployable to GitHub Pages as-is and it does not work offline by
+copying the folder.
+
+**Files:** `moving_cost_tracker/frontend/` (`index.html`, `style.css`, `script.js`,
+`i18n.js`, `rooms.js`, `ikea.js`) · `moving_cost_tracker/backend/server.js`
+
+---
+
+## Where it runs
+
+| | |
+|---|---|
+| **Public** | **https://178-105-148-72.sslip.io** — the bare sslip host, Caddy → `localhost:3456` |
+| Local | http://127.0.0.1:3456 — pm2 **`moving-cost`** |
+| VPS | systemd **`moving-cost`**, `/root/repos/moving-cost-tracker` |
+
+Installable PWA since 2026-07-30: `icon.svg` + PNG icons + `apple-touch-icon.png`,
+`manifest.webmanifest`, and `sw.js`. The worker caches the **shell and assets only —
+`/api/*` is never cached**, because a cached budget would quietly show yesterday's
+numbers as today's. Offline you get the frame and an empty state.
+**Bump `V` in `sw.js`** whenever you change `style.css`, `script.js`, `i18n.js`,
+`rooms.js`, `ikea.js` or an icon, or installed phones keep the old bundle.
+
+### ⚠️ The VPS checkout has forked from GitHub — resolve before the next deploy
+
+As of 2026-07-30 `/root/repos/moving-cost-tracker` is **13 commits ahead and 8
+behind** `origin/main`, with ~91 lines staged-but-uncommitted on top. The extra
+commits are all automated `sync: <timestamp>` snapshots, and they touch the same
+frontend files as the GitHub history — so `git pull` fails with
+*"Not possible to fast-forward"*.
+
+Because of that, the PWA files were deployed to the VPS **surgically, not by pull**:
+the six new files were copied in, and `index.html` / `server.js` were patched at
+anchors that are identical on both sides. Backups:
+`/root/mct-index.html.pre-pwa-2026-07-30` and `/root/mct-server.js.pre-pwa-2026-07-30`.
+Those two files are now modified on the VPS and **not committed anywhere**.
+
+Someone has to decide which side is authoritative and reconcile — merge the sync
+commits into `origin/main`, or reset the VPS to origin and accept losing them. Until
+then every deploy here is hand-surgery. Whatever writes the `sync:` commits is not
+in cron (`/etc/cron.d` has only espresso-pull, wed-studio-pull, sysstat, e2scrub);
+find it before reconciling or it will fork again.
 
 ---
 
