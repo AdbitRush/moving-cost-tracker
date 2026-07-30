@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title data-i18n="app_title">מעקב הוצאות מעבר דירה</title>
   <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="כל העלויות של מעבר הדירה במקום אחד — פריטים, תקציב, חדרים ורשימת IKEA." />
+  <!-- PWA: installable to the home screen, works offline (shell only — the data
+       stays behind /api/, see sw.js) -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="מעבר דירה" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+  <!-- the app ships both themes; let the browser chrome follow the active one -->
+  <meta name="theme-color" content="#f0ebe3" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1a1410" media="(prefers-color-scheme: dark)" />
   <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('mct-theme') || 'dark');</script>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -397,5 +411,15 @@
 <script src="rooms.js"></script>
 <script src="ikea.js"></script>
 <script>window.addEventListener('DOMContentLoaded', function(){ if(typeof applyLang==='function') applyLang(); });</script>
+<script>
+/* PWA: a worker with a fetch handler is what makes the browser offer "Install",
+   and what lets the app open at the new flat with no wifi yet. It caches the
+   shell only — /api/* is excluded, so a budget is never served from cache. */
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function () {});
+  });
+}
+</script>
 </body>
 </html>

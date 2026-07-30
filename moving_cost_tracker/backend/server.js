@@ -378,8 +378,17 @@ const server = http.createServer(async (req, res) => {
       '.png': 'image/png',
       '.jpg': 'image/jpeg',
       '.svg': 'image/svg+xml',
+      // without this the PWA manifest goes out as application/octet-stream
+      '.webmanifest': 'application/manifest+json',
+      '.ico': 'image/x-icon',
     }[ext] || 'application/octet-stream';
-    res.writeHead(200, { 'Content-Type': mime });
+    const headers = { 'Content-Type': mime };
+    // The service worker must never be served from a stale cache, or a fix to it
+    // can't reach an installed phone. Same for the page and the manifest.
+    if (/^\/(sw\.js|index\.html|manifest\.webmanifest)$/.test(filePath) || filePath === '/') {
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    }
+    res.writeHead(200, headers);
     const stream = fs.createReadStream(fullPath);
     stream.pipe(res);
   });

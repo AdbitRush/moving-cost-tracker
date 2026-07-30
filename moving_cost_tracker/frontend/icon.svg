@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Moving Cost Tracker">
+  <!-- App identity: the sidebar's dark brown + the terracotta accent (#d4673a).
+       A moving box carrying a house = a home in transit. -->
+  <rect width="512" height="512" rx="112" fill="#1a1410"/>
+
+  <!-- open flaps -->
+  <path d="M126 236 L250 236 L250 176 L156 190 Z" fill="#e8855a"/>
+  <path d="M386 236 L262 236 L262 176 L356 190 Z" fill="#c25a2f"/>
+
+  <!-- box body -->
+  <rect x="118" y="236" width="276" height="178" rx="14" fill="#d4673a"/>
+  <!-- tape seam -->
+  <rect x="248" y="236" width="16" height="178" fill="#b34f27" opacity=".75"/>
+
+  <!-- house on the front face -->
+  <path d="M256 268 L336 322 L326 322 L326 386 L186 386 L186 322 L176 322 Z" fill="#f5ede3"/>
+  <rect x="238" y="340" width="36" height="46" rx="4" fill="#d4673a"/>
+</svg>
