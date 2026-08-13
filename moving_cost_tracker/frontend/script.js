@@ -259,7 +259,23 @@ function updateSummary() {
   bar.className = 'hero-progress-bar' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warn' : '');
   document.getElementById('progressPct').textContent = pct + '%';
   document.getElementById('progressSpent').textContent = '₪' + fmt(allTotal) + ' ' + t('spent');
-  document.getElementById('heroTitle').textContent = '₪' + fmt(allTotal) + ' / ₪' + fmt(effectiveBudget);
+  // The headline is two spend figures, not spend-against-budget:
+  //   left  — everything the move has cost, before anything was sold
+  //   right — what actually left your pocket, after sales
+  // Sales are added to the budget everywhere else in this file, which answers
+  // "how much can I still spend". This answers "how much has this cost me",
+  // which is the question you ask when you have sold things to fund the move.
+  // The budget has not gone anywhere — it drives the progress bar below and the
+  // "Budget left" card.
+  const netOfSales = allTotal - income;
+  document.getElementById('heroTitle').textContent =
+    '₪' + fmt(allTotal) + ' / ₪' + fmt(netOfSales);
+  const heroSub = document.getElementById('heroTitleSub');
+  if (heroSub) {
+    heroSub.textContent = income > 0
+      ? t('hero_gross_net').replace('{sold}', '₪' + fmt(income))
+      : t('hero_gross_only');
+  }
 
   const salesRow = document.getElementById('heroSalesRow');
   if (income > 0) {

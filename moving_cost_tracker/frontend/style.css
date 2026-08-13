@@ -258,7 +258,11 @@ body {
   pointer-events: none;
 }
 .hero-label { font-size: .75rem; font-weight: 600; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
-.hero-title { font-size: 1.7rem; font-weight: 800; color: #fff; letter-spacing: -.03em; margin-bottom: 16px; }
+.hero-title { font-size: 1.7rem; font-weight: 800; color: #fff; letter-spacing: -.03em; margin-bottom: 4px; }
+/* Says which number is which. The headline reads "38,832 / 31,982" — two spend
+   figures, not spend-against-budget — and without a caption the slash invites
+   exactly the wrong reading. */
+.hero-title-sub { font-size: .72rem; font-weight: 600; color: rgba(255,255,255,.72); letter-spacing: .01em; margin-bottom: 14px; min-height: 1em; }
 
 .hero-progress-wrap { position: relative; height: 14px; background: rgba(0,0,0,.2); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
 .hero-progress-bar {

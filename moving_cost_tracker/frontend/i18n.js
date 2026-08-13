@@ -19,6 +19,7 @@ const I18N = {
     sold_actual:'💵 נמכר בפועל:', included_budget:'(כלול בתקציב)', projected_all:'📈 הערכה אם הכל יימכר:',
     remaining_word:'יתרה', kpi_total:'סה״כ פריטים', kpi_paid:'שולם', kpi_pending:'ממתין לתשלום', kpi_remaining:'יתרת תקציב',
     kpi_net_spent:'הוצאה נטו', net_sold_credit:'שנמכר', net_no_sales:'טרם נמכר דבר',
+    hero_gross_net:'סה״כ הוצאה / מהכיס שלכם, אחרי {sold} שנמכרו', hero_gross_only:'סה״כ הוצאה',
     upcoming_header:'🔔 הגעות קרובות (7 ימים הבאים)', upcoming_empty:'אין הגעות מתוכננות בשבוע הקרוב',
     cat_spend_header:'🏷 הוצאות לפי קטגוריה', items_word:'פריטים', cat_no_items:'אין פריטים עם קטגוריות',
     // calendar
@@ -86,6 +87,7 @@ const I18N = {
     sold_actual:'💵 Actually sold:', included_budget:'(in budget)', projected_all:'📈 If everything sells:',
     remaining_word:'left', kpi_total:'Total items', kpi_paid:'Paid', kpi_pending:'Pending payment', kpi_remaining:'Budget left',
     kpi_net_spent:'Net spent', net_sold_credit:'sold', net_no_sales:'nothing sold yet',
+    hero_gross_net:'Total spent / out of your pocket, after {sold} sold', hero_gross_only:'Total spent',
     upcoming_header:'🔔 Upcoming (next 7 days)', upcoming_empty:'No scheduled arrivals this week',
     cat_spend_header:'🏷 Spend by category', items_word:'items', cat_no_items:'No items with categories',
     t_calendar:'📅 Schedule', cal_header:'📅 Weekly schedule', cal_prev:'Prev', cal_today:'Today', cal_next:'Next',

@@ -11,7 +11,7 @@
 // bump the stale-while-revalidate branch serves the old bundle on the next load
 // and the new card renders with an unstyled panel and a raw i18n key as its
 // label, which is exactly what happened while testing it.
-const V = "movingcost-v2";
+const V = "movingcost-v3";
 const PREFIX = "movingcost-";
 const SHELL = [
   "/", "/index.html", "/style.css", "/script.js", "/i18n.js", "/rooms.js", "/ikea.js",
