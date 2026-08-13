@@ -232,6 +232,28 @@ function updateSummary() {
   remEl.textContent = (remaining < 0 ? '-' : '') + '₪' + fmt(Math.abs(remaining));
   remEl.className = 'kpi-value' + (remaining < 0 ? ' danger' : '');
 
+  // What the move has actually cost, once the things sold are counted against
+  // it. Everywhere else sales are added to the budget (raising what can be
+  // spent); this is the same fact from the other side — money out of pocket.
+  // Both views are needed: "budget left" answers what is still available,
+  // this answers what the move has cost so far.
+  //
+  // Goes negative when sales exceed spend, and that is a real state worth
+  // showing rather than clamping to zero — it means the move is funding itself.
+  const netSpent = allTotal - income;
+  const netEl = document.getElementById('kpiNetSpent');
+  if (netEl) {
+    netEl.textContent = (netSpent < 0 ? '-' : '') + '₪' + fmt(Math.abs(netSpent));
+    const subEl = document.getElementById('kpiNetSub');
+    if (subEl) {
+      // Show the working. A bare net figure sitting beside the paid and
+      // pending cards reads like a contradiction unless the credit is visible.
+      subEl.textContent = income > 0
+        ? '₪' + fmt(allTotal) + ' − ₪' + fmt(income) + ' ' + t('net_sold_credit')
+        : t('net_no_sales');
+    }
+  }
+
   const bar = document.getElementById('progressBar');
   bar.style.width = pct + '%';
   bar.className = 'hero-progress-bar' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warn' : '');

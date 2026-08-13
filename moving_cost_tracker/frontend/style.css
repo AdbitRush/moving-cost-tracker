@@ -283,7 +283,9 @@ body {
 /* ──────────────────────────────────────────────────────────
    KPI ROW
    ────────────────────────────────────────────────────────── */
-.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+/* auto-fit rather than a fixed 4, so the net-spend card added alongside the
+   original four does not leave one orphan on its own row at some widths. */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 14px; margin-bottom: 24px; }
 @media(max-width:750px) { .kpi-row { grid-template-columns: repeat(2,1fr); } }
 
 .kpi-card {
@@ -298,11 +300,15 @@ body {
 .kpi-card-paid    { background: linear-gradient(135deg, #0d9488 0%, #0fb8ab 100%); border-color: #0fb8ab; }
 .kpi-card-pending { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); border-color: #f59e0b; }
 .kpi-card-remain  { background: linear-gradient(135deg, #374151 0%, #4b5563 100%); border-color: #4b5563; }
+.kpi-card-net     { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); border-color: #3b82f6; }
 
 .kpi-icon { font-size: 1.5rem; margin-bottom: 8px; display: block; }
 .kpi-label { font-size: .7rem; font-weight: 700; color: rgba(255,255,255,.7); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
 .kpi-value { font-size: 1.55rem; font-weight: 800; color: #fff; letter-spacing: -.03em; }
 .kpi-value.danger { color: #fca5a5; }
+/* The working shown under the net figure. Without it "₪4,100" next to a
+   "₪6,140 pending" card just looks like one of the two numbers is wrong. */
+.kpi-sub { font-size: .68rem; font-weight: 600; color: rgba(255,255,255,.72); margin-top: 5px; letter-spacing: .01em; }
 
 /* ──────────────────────────────────────────────────────────
    PANELS

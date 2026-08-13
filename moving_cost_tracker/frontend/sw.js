@@ -7,7 +7,11 @@
 
    BUMP V whenever an asset changes (style.css, script.js, i18n.js, rooms.js,
    ikea.js, the icons) or installed phones keep serving the old bundle. */
-const V = "movingcost-v1";
+// v2: net-spend KPI — style.css, script.js and i18n.js all changed. Without the
+// bump the stale-while-revalidate branch serves the old bundle on the next load
+// and the new card renders with an unstyled panel and a raw i18n key as its
+// label, which is exactly what happened while testing it.
+const V = "movingcost-v2";
 const PREFIX = "movingcost-";
 const SHELL = [
   "/", "/index.html", "/style.css", "/script.js", "/i18n.js", "/rooms.js", "/ikea.js",
